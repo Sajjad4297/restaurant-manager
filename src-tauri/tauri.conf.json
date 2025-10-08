@@ -1,6 +1,6 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-    "productName": "restaurant-manager",
+    "productName": "Restaurant Manager",
     "version": "0.1.0",
     "identifier": "com.sajjad.restaurant-manager",
     "build": {
