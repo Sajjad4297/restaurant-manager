@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OrderItem, FoodItem } from "../types";
 import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder } from "../lib/db";
-import { Trash2 } from "lucide-react";
+import { Trash2, Check } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
 export const OrdersPage = () => {
@@ -156,25 +156,26 @@ export const OrdersPage = () => {
                                 <p className="text-sm text-gray-500">
                                     زمان ثبت: {item.time}
                                 </p>
-
-                                <div className="flex gap-2 mt-3 flex-wrap">
-                                    <button
-                                        onClick={() => navigate('/new-order', { state: item })}
-                                        className="w-full cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
-                                        تغییر سفارش
-                                    </button>
-                                    <button
-                                        onClick={() => submitPaidOrder(item)}
-                                        className="flex-1 cursor-pointer bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
-                                        پرداخت شد
-                                    </button>
-                                    <button
-                                        onClick={() => submitUnpaidOrder(item)}
-                                        className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
-                                        پرداخت نشد
-                                    </button>
-                                </div>
-                            </div>
+                                {item.paid == 0 ?
+                                    <div className="flex gap-2 mt-3 flex-wrap">
+                                        <button
+                                            onClick={() => navigate('/new-order', { state: item })}
+                                            className="w-full cursor-pointer bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
+                                            تغییر سفارش
+                                        </button>
+                                        <button
+                                            onClick={() => submitPaidOrder(item)}
+                                            className="flex-1 cursor-pointer bg-green-500 hover:bg-green-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
+                                            پرداخت شد
+                                        </button>
+                                        <button
+                                            onClick={() => submitUnpaidOrder(item)}
+                                            className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
+                                            پرداخت نشد
+                                        </button>
+                                    </div> :
+                                    <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده </div>
+                                }                            </div>
                         </div>
                     ))}
                 </div>

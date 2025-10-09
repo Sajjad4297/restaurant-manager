@@ -4,6 +4,8 @@ import { convertFileSrc } from "@tauri-apps/api/core";
 import { useNavigate, useLocation } from "react-router-dom";
 import { getMenuItems, addPendingOrder, updatePendingOrder } from "../lib/db";
 import type { FoodItem, MenuFood } from "../types";
+import { motion } from "framer-motion";
+
 export const NewOrderPage = () => {
     const [menuFoods, setMenuFoods] = useState<MenuFood[]>([]);
     const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
@@ -14,10 +16,10 @@ export const NewOrderPage = () => {
         phone: "",
         address: "",
         description: ""
-    }
-    )
+    })
     const navigate = useNavigate();
     const location = useLocation();
+
     useEffect(() => {
         loadMenu();
     }, []);
@@ -108,15 +110,19 @@ export const NewOrderPage = () => {
         }
     };
 
-    const handleClickOnFoods = (id: number, price: number) => {
+    const handleQuantityChange = (id: number, price: number, change: number) => {
         const selectedFood: any = menuFoods.find((food) => food.id == id);
         const unselectedFoods = menuFoods.filter((food) => food.id != id);
+
+        const newQuantity = Math.max(0, selectedFood.quantity + change);
+
         setMenuFoods(([...unselectedFoods, {
             ...selectedFood,
-            quantity: selectedFood.quantity + 1,
-            totalPrice: (selectedFood.quantity + 1) * price
+            quantity: newQuantity,
+            totalPrice: newQuantity * price
         }]).sort((a, b) => a.id - b.id));
     };
+
     const handleCustomerData = (e: ChangeEvent<HTMLInputElement> | ChangeEvent<HTMLTextAreaElement>) => {
         const inputName = e.target.name;
         const inputValue = e.target.value;
@@ -129,8 +135,8 @@ export const NewOrderPage = () => {
                 [inputName]: inputValue
             })
         }
-
     }
+
     const submitOrder = async () => {
         try {
             if (selectedFoods.length === 0 || totalPrice === 0 || totalQuantity === 0) {
@@ -239,15 +245,10 @@ export const NewOrderPage = () => {
                                         <div
                                             key={idx}
                                             className={
-                                                "relative w-56 rounded-2xl shadow-md bg-white pb-16 p-6 flex flex-col items-center hover:shadow-2xl transition-all duration-300 cursor-pointer border border-orange-300 " +
+                                                "relative w-56 rounded-2xl shadow-md bg-white pb-16 p-6 flex flex-col items-center hover:shadow-2xl transition-all duration-300 border border-orange-300 " +
                                                 (item.quantity > 0 ? "ring-4 ring-orange-300" : "")
                                             }
                                         >
-                                            <div
-                                                onClick={() => handleClickOnFoods(item.id, item.price)}
-                                                className="absolute top-0 bottom-0 right-0 left-0 cursor-pointer z-0"
-                                            ></div>
-
                                             <div className="w-40 h-40 mb-4 flex items-center justify-center bg-gray-100 rounded-xl overflow-hidden">
                                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                                             </div>
@@ -257,15 +258,35 @@ export const NewOrderPage = () => {
                                             <p className="text-green-600 font-semibold">
                                                 <span className="text-xl">{item.price?.toLocaleString()}</span> تومان
                                             </p>
-                                            {item.quantity > 0 && (
-                                                <input
-                                                    dir="ltr"
-                                                    type="text"
-                                                    value={item.quantity}
-                                                    onChange={(e) => handleInputChange(e, item.id, item.price)}
-                                                    className="w-14 z-10 absolute bottom-3 text-center text-xl text-orange-700 font-bold border border-orange-400 rounded-md bg-white shadow-sm"
-                                                />
-                                            )}
+
+                                            {/* Quantity Controls */}
+                                            <div className="absolute bottom-3 flex items-center gap-2 z-10">
+                                                <button
+                                                    onClick={() => handleQuantityChange(item.id, item.price, 1)}
+                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors text-lg font-bold shadow-md"
+                                                >
+                                                    +
+                                                </button>
+
+                                                {item.quantity > 0 ? (
+                                                    <input
+                                                        dir="ltr"
+                                                        type="text"
+                                                        value={item.quantity}
+                                                        onChange={(e) => handleInputChange(e, item.id, item.price)}
+                                                        className="w-14 text-center text-xl text-orange-700 font-bold border border-orange-400 rounded-md bg-white shadow-sm"
+                                                    />
+                                                ) :
+                                                    <div className="w-14"></div>
+                                                }
+                                                <button
+                                                    onClick={() => handleQuantityChange(item.id, item.price, -1)}
+                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors text-lg font-bold shadow-md"
+                                                >
+                                                    -
+                                                </button>
+
+                                            </div>
                                         </div>
                                     ))}
                             </div>
@@ -293,15 +314,10 @@ export const NewOrderPage = () => {
                                         <div
                                             key={idx}
                                             className={
-                                                "relative w-56 rounded-2xl shadow-md bg-white pb-16 p-6 flex flex-col items-center hover:shadow-2xl transition-all duration-300 cursor-pointer border border-blue-300 " +
+                                                "relative w-56 rounded-2xl shadow-md bg-white pb-16 p-6 flex flex-col items-center hover:shadow-2xl transition-all duration-300 border border-blue-300 " +
                                                 (item.quantity > 0 ? "ring-4 ring-blue-300" : "")
                                             }
                                         >
-                                            <div
-                                                onClick={() => handleClickOnFoods(item.id, item.price)}
-                                                className="absolute top-0 bottom-0 right-0 left-0 cursor-pointer z-0"
-                                            ></div>
-
                                             <div className="w-40 h-40 mb-4 flex items-center justify-center bg-gray-100 rounded-xl overflow-hidden">
                                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                                             </div>
@@ -311,15 +327,35 @@ export const NewOrderPage = () => {
                                             <p className="text-green-600 font-semibold">
                                                 <span className="text-xl">{item.price?.toLocaleString()}</span> تومان
                                             </p>
-                                            {item.quantity > 0 && (
-                                                <input
-                                                    dir="ltr"
-                                                    type="text"
-                                                    value={item.quantity}
-                                                    onChange={(e) => handleInputChange(e, item.id, item.price)}
-                                                    className="w-14 z-10 absolute bottom-3 text-center text-xl text-blue-700 font-bold border border-blue-400 rounded-md bg-white shadow-sm"
-                                                />
-                                            )}
+
+                                            {/* Quantity Controls */}
+                                            <div className="absolute bottom-3 flex items-center gap-2 z-10">
+                                                <button
+                                                    onClick={() => handleQuantityChange(item.id, item.price, 1)}
+                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors text-lg font-bold shadow-md"
+                                                >
+                                                    +
+                                                </button>
+
+                                                {item.quantity > 0 ? (
+                                                    <input
+                                                        dir="ltr"
+                                                        type="text"
+                                                        value={item.quantity}
+                                                        onChange={(e) => handleInputChange(e, item.id, item.price)}
+                                                        className="w-14 text-center text-xl text-blue-700 font-bold border border-blue-400 rounded-md bg-white shadow-sm"
+                                                    />
+                                                ) :
+                                                    <div className="w-14"></div>
+                                                }
+                                                <button
+                                                    onClick={() => handleQuantityChange(item.id, item.price, -1)}
+                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors text-lg font-bold shadow-md"
+                                                >
+                                                    -
+                                                </button>
+
+                                            </div>
                                         </div>
                                     ))}
                             </div>
@@ -330,11 +366,17 @@ export const NewOrderPage = () => {
 
             {/* سفارش‌ها */}
             {selectedFoods?.length > 0 && (
-                <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-6 flex flex-col gap-4">
-                    <h2 className="font-bold text-xl mb-2 border-b pb-2">سفارش شما</h2>
-                    <div className="flex flex-col gap-2">
+                <motion.div
+                    initial={{ opacity: 0, x: 100 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 100 }}
+                    transition={{ duration: 0.3 }}
+                    className="fixed bottom-4 right-4 bg-white shadow-2xl rounded-2xl p-6 w-[320px] ..."
+                >
+                    <h2 className="font-bold text-xl mb-2 border-b pb-2 text-gray-800">سفارش شما</h2>
+                    <div className="flex flex-col gap-2 text-gray-700">
                         {selectedFoods.map((food) => (
-                            <p key={food.id} className="text-lg text-gray-800">
+                            <p key={food.id} className="text-lg">
                                 <span className="font-bold text-indigo-700">{food.quantity}</span> × {food.title}
                             </p>
                         ))}
@@ -343,7 +385,14 @@ export const NewOrderPage = () => {
                         مبلغ نهایی:{" "}
                         <span className="text-green-600 font-bold">{totalPrice.toLocaleString()}</span> تومان
                     </h1>
-                </div>
+
+                    <button
+                        className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl text-lg font-bold shadow-md transition-colors mt-3"
+                        onClick={submitOrder}
+                    >
+                        ثبت سفارش
+                    </button>
+                </motion.div>
             )}
 
             <button

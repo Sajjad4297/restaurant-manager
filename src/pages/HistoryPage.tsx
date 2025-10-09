@@ -152,81 +152,82 @@ export const HistoryPage = () => {
                             {!showPaid && <th className="p-3 text-center">عملیات</th>}
                         </tr>
                     </thead>
-<tbody className="divide-y divide-gray-200">
-  {displayedOrders.length === 0 ? (
-    <tr>
-      <td colSpan={7} className="p-6 text-center text-gray-500 font-medium">
-        {showPaid
-          ? "هیچ سفارش پرداخت‌شده‌ای وجود ندارد."
-          : "هیچ سفارش پرداخت‌نشده‌ای وجود ندارد."}
-      </td>
-    </tr>
-  ) : (
-    groupOrdersByDay(displayedOrders).map(([label, orders]) => (
-      <React.Fragment key={label}>
-        {/* --- Section Header --- */}
-        <tr>
-          <td colSpan={7} className="py-3 bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100">
-            <div className="flex items-center justify-center relative">
-              <div className="absolute left-0 right-0 h-px bg-indigo-200" />
-              <span className="relative z-10 bg-white px-6 py-1 rounded-full shadow-sm border text-gray-700 font-bold text-lg">
-                {label}
-              </span>
-            </div>
-          </td>
-        </tr>
+                    <tbody className="divide-y divide-gray-200">
+                        {displayedOrders.length === 0 ? (
+                            <tr>
+                                <td colSpan={7} className="p-6 text-center text-gray-500 font-medium">
+                                    {showPaid
+                                        ? "هیچ سفارش پرداخت‌شده‌ای وجود ندارد."
+                                        : "هیچ سفارش پرداخت‌نشده‌ای وجود ندارد."}
+                                </td>
+                            </tr>
+                        ) : (
+                            groupOrdersByDay(displayedOrders).map(([label, orders]) => (
+                                <React.Fragment key={label}>
+                                    {/* --- Section Header --- */}
+                                    <tr>
+                                        <td colSpan={7} className="py-3 bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100">
+                                            <div className="flex items-center justify-center relative">
+                                                <div className="absolute right-3 z-10 bg-white px-2 py-1 rounded-full shadow-sm border text-gray-700 font-bold ">
+                                                    {orders.length}x
+                                                </div>
+                                                <div className="absolute left-0 right-0 h-px bg-indigo-200" />
+                                                <span className="relative z-10 bg-white px-6 py-1 rounded-full shadow-sm border text-gray-700 font-bold text-lg">
+                                                    {label}
+                                                </span>
+                                            </div>
+                                        </td>
+                                    </tr>
 
-        {/* --- Orders in this day --- */}
-        {orders.map((o, i) => (
-          <tr
-            key={o.id}
-            className={`hover:bg-gray-50 transition-all ${
-              i % 2 === 0 ? "bg-white" : "bg-gray-50"
-            }`}
-          >
-            <td className="p-3 text-center font-bold text-gray-900">#{o.id}</td>
-            <td className="p-3 text-center">{o.name || "—"}</td>
-            <td className="p-3 text-center font-semibold text-gray-700">
-              {o.totalPrice.toLocaleString()} تومان
-            </td>
-            <td className="p-3 text-center">
-              <span
-                className={`px-3 py-1 rounded-full text-sm font-bold ${
-                  showPaid
-                    ? "bg-green-100 text-green-700"
-                    : "bg-red-100 text-red-600"
-                }`}
-              >
-                {showPaid ? "پرداخت شده" : "پرداخت نشده"}
-              </span>
-            </td>
-            <td className="p-3 text-center text-gray-500 text-sm">
-              {showPaid ? o.paidTime : o.time}
-            </td>
-            <td className="p-3 text-center">
-              <button
-                onClick={() => setShowDetails(o)}
-                className="bg-amber-500 cursor-pointer hover:bg-amber-600 text-white px-5 py-2 rounded-lg shadow-md font-semibold transition-all"
-              >
-                مشاهده جزئیات
-              </button>
-            </td>
-            {!showPaid && (
-              <td className="p-3 text-center">
-                <button
-                  onClick={() => submitPaidOrder(o)}
-                  className="bg-green-500 cursor-pointer hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md font-medium transition-all"
-                >
-                  پرداخت شد
-                </button>
-              </td>
-            )}
-          </tr>
-        ))}
-      </React.Fragment>
-    ))
-  )}
-</tbody>
+                                    {/* --- Orders in this day --- */}
+                                    {orders.map((o, i) => (
+                                        <tr
+                                            key={o.id}
+                                            className={`hover:bg-gray-50 transition-all ${i % 2 === 0 ? "bg-white" : "bg-gray-50"
+                                                }`}
+                                        >
+                                            <td className="p-3 text-center font-bold text-gray-900">#{o.id}</td>
+                                            <td className="p-3 text-center">{o.name || "—"}</td>
+                                            <td className="p-3 text-center font-semibold text-gray-700">
+                                                {o.totalPrice.toLocaleString()} تومان
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <span
+                                                    className={`px-3 py-1 rounded-full text-sm font-bold ${showPaid
+                                                        ? "bg-green-100 text-green-700"
+                                                        : "bg-red-100 text-red-600"
+                                                        }`}
+                                                >
+                                                    {showPaid ? "پرداخت شده" : "پرداخت نشده"}
+                                                </span>
+                                            </td>
+                                            <td className="p-3 text-center text-gray-500 text-sm">
+                                                {showPaid ? o.paidTime : o.time}
+                                            </td>
+                                            <td className="p-3 text-center">
+                                                <button
+                                                    onClick={() => setShowDetails(o)}
+                                                    className="bg-amber-500 cursor-pointer hover:bg-amber-600 text-white px-5 py-2 rounded-lg shadow-md font-semibold transition-all"
+                                                >
+                                                    مشاهده جزئیات
+                                                </button>
+                                            </td>
+                                            {!showPaid && (
+                                                <td className="p-3 text-center">
+                                                    <button
+                                                        onClick={() => submitPaidOrder(o)}
+                                                        className="bg-green-500 cursor-pointer hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md font-medium transition-all"
+                                                    >
+                                                        پرداخت شد
+                                                    </button>
+                                                </td>
+                                            )}
+                                        </tr>
+                                    ))}
+                                </React.Fragment>
+                            ))
+                        )}
+                    </tbody>
                 </table>
             </div>
 

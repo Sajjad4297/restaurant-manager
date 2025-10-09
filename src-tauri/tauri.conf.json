@@ -1,8 +1,8 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
     "productName": "Restaurant Manager",
-    "version": "0.1.0",
-    "identifier": "com.sajjad.restaurant-manager",
+    "version": "1.0.0",
+    "identifier": "com.tauri.dev",
     "build": {
         "frontendDist": "../dist",
         "devUrl": "http://localhost:5173",
@@ -16,15 +16,16 @@
                 "width": 800,
                 "height": 600,
                 "resizable": true,
-                "maximized": true
+                "fullscreen": true
             }
         ],
         "security": {
-            "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data: blob:;",
+            "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
             "assetProtocol": {
                 "enable": true,
                 "scope": [
-                    "$APPDATA/**"
+                    "$APPDATA/**",
+                    "/home/sajy/.local/share/**"
                 ]
             }
         }

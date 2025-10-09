@@ -27,6 +27,7 @@ export async function initDB() {
                 customer_phone TEXT,
                 customer_address TEXT,
                 description TEXT,
+                paid INTEGER DEFAULT 0,
                 order_time REAL NOT NULL
             )
         `);
@@ -58,6 +59,20 @@ export async function initDB() {
                 order_time REAL NOT NULL
             )
         `);
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS free_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                items TEXT NOT NULL, -- JSON string of items
+                total_price REAL NOT NULL,
+                total_quantity REAL NOT NULL,
+                customer_name TEXT,
+                customer_phone TEXT,
+                customer_address TEXT,
+                description TEXT,
+                order_time REAL NOT NULL
+            )
+        `);
+
 
     }
     return db;
@@ -126,6 +141,7 @@ export async function getPendingOrders() {
             customer_phone AS phone,
             customer_address AS address,
             description,
+            paid,
             order_time AS date FROM pending_orders ORDER BY order_time `);
     result.map(order => {
         order.foods = JSON.parse(order.foods);
@@ -183,7 +199,7 @@ export async function getUnpaidOrders() {
             customer_phone AS phone,
             customer_address AS address,
             description,
-            order_time AS date FROM unpaid_orders `);
+            order_time AS date FROM unpaid_orders ORDER By id DESC `);
     result.map(order => {
         order.foods = JSON.parse(order.foods);
     })
@@ -196,6 +212,41 @@ export async function getUnpaidCount() {
     return result[0]?.count || 0;
 }
 
+
+// FREE ORDER FUNCTIONS
+// ---------------------------
+export async function addFreeOrder(data: any) {
+    const database = await initDB();
+    const { id, foods, totalPrice, totalQuantity, date, name, phone, address, description } = data
+    await database.execute(
+        `INSERT INTO free_orders (items, total_price,total_quantity, order_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        [JSON.stringify(foods), totalPrice, totalQuantity, date, name, phone, address, description]
+    );
+    await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
+
+}
+
+export async function getFreeOrders() {
+    const database = await initDB();
+    const result: any[] = await
+        database.select(`
+            SELECT
+            id,
+            items AS foods,
+            total_price AS totalPrice,
+            total_quantity AS totalQuantity,
+            customer_name AS name,
+            customer_phone AS phone,
+            customer_address AS address,
+            description,
+            order_time AS date FROM free_orders ORDER By id DESC `);
+    result.map(order => {
+        order.foods = JSON.parse(order.foods);
+    })
+    return result;
+}
+
+
 // PAID ORDER FUNCTIONS
 // ---------------------------
 export async function addPaidOrder(data: any) {
@@ -205,7 +256,7 @@ export async function addPaidOrder(data: any) {
         `INSERT INTO paid_orders (items, total_price,total_quantity, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [JSON.stringify(foods), totalPrice, totalQuantity, date, paidDate, name, phone, address, description]
     );
-    await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
+    await database.execute(`UPDATE pending_orders SET paid = 1 WHERE id = ?`, [id]);
 
 }
 export async function addPaidOrderFromUnpaid(data: any) {

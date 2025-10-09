@@ -18,6 +18,7 @@ export type OrderItem = {
     paidDate?: string;
     paidTime?: string;
     time?: string;
+    paid?: 0 | 1;
 }
 export type FoodItem = {
     id: number;
