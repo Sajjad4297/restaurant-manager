@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OrderItem, FoodItem } from "../types";
 import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder } from "../lib/db";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, MessageSquareWarning } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
 export const OrdersPage = () => {
@@ -113,6 +113,12 @@ export const OrdersPage = () => {
                             key={idx}
                             className="bg-white rounded-2xl relative shadow-md p-6 flex flex-col justify-between hover:shadow-xl transition-all"
                         >
+                            {item.description &&
+                                <div className="absolute top-18 left-2 bg-amber-300 p-1 rounded-2xl" title={"توضیحات: " + item.description} >
+                                    <MessageSquareWarning color="white" size={18} />
+                                </div>
+
+                            }
                             {/* 🗑️ Delete Icon */}
                             <button
                                 onClick={(e) => {
@@ -175,7 +181,8 @@ export const OrdersPage = () => {
                                         </button>
                                     </div> :
                                     <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده </div>
-                                }                            </div>
+                                }
+                            </div>
                         </div>
                     ))}
                 </div>

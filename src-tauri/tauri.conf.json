@@ -16,17 +16,14 @@
                 "width": 800,
                 "height": 600,
                 "resizable": true,
-                "fullscreen": true
+                "maximized": true
             }
         ],
         "security": {
-            "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost",
+            "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' asset: http://asset.localhost data: blob:;",
             "assetProtocol": {
                 "enable": true,
-                "scope": [
-                    "$APPDATA/**",
-                    "/home/sajy/.local/share/**"
-                ]
+                "scope": ["$APPDATA/**"]
             }
         }
     },
