@@ -1,3 +1,4 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 use tauri::Manager;
 use std::fs;
 use std::path::PathBuf;

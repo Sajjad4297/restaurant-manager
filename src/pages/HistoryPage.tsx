@@ -248,7 +248,7 @@ export const HistoryPage = () => {
                         <div className="space-y-3 text-gray-700 leading-relaxed">
                             <p>
                                 <span className="font-semibold text-indigo-600">نام:</span>{" "}
-                                {showDetails.name}
+                                {showDetails.name || "—"}
                             </p>
                             <p>
                                 <span className="font-semibold text-indigo-600">شماره تماس:</span>{" "}
