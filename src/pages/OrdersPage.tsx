@@ -1,15 +1,9 @@
 // src/pages/OrdersPage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-<<<<<<< HEAD
-import type { OrderItem, FoodItem } from "../types";
-import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder } from "../lib/db";
-import { Trash2, Check, MessageSquareWarning } from "lucide-react";
-=======
 import type { OrderItem, FoodItem, Account } from "../types";
 import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder, addAccountOrder, getAccounts } from "../lib/db";
 import { Trash2, Check } from "lucide-react";
->>>>>>> 63f2a7303340dbc7a03c8cb97fce87f08a54adb9
 import { ConfirmModal } from "../components/ConfirmModal";
 
 export const OrdersPage = () => {
@@ -147,7 +141,7 @@ export const OrdersPage = () => {
                         >
                             {item.description &&
                                 <div className="absolute top-18 left-2 bg-amber-300 p-1 rounded-2xl" title={"توضیحات: " + item.description} >
-                                    <MessageSquareWarning color="white" size={18} />
+                                    <Check color="white" size={18} />
                                 </div>
 
                             }
@@ -218,11 +212,7 @@ export const OrdersPage = () => {
                                         </button>
 
                                     </div> :
-<<<<<<< HEAD
-                                    <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده </div>
-=======
                                     <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده ({item.paymentMethod}) </div>
->>>>>>> 63f2a7303340dbc7a03c8cb97fce87f08a54adb9
                                 }
                             </div>
                         </div>

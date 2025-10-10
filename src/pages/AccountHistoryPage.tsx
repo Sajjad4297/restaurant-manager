@@ -133,7 +133,7 @@ export const AccountHistoryPage = () => {
             {/* Debt and Payment */}
             <div className="bg-white rounded-2xl shadow p-5 mb-6 border border-gray-100">
                 <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-                    {account && (account?.totalDebt > 0 ?
+                    {account && (account?.totalDebt >= 0 ?
                         <div className="text-lg text-gray-800 font-semibold">
                             بدهی کل:{" "}
                             <span className="text-red-600">

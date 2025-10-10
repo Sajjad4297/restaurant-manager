@@ -1,7 +1,7 @@
 // src/pages/HistoryPage.tsx
 import React, { useEffect, useState } from "react";
 import { addPaidOrderFromUnpaid, getPaidOrders, getUnpaidOrders } from "../lib/db";
-import type { OrderItem } from "../types";
+import type { Account, OrderItem } from "../types";
 import { XIcon } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
@@ -44,11 +44,12 @@ export const HistoryPage = () => {
     useEffect(() => {
         loadOrders();
     }, []);
+
     const [modal, setModal] = useState<{
         show: boolean;
-        action?: () => void;
+        action?: (account?: Account | null, paymentMethod?: string) => Promise<void> | void;
         title?: string;
-        message?: string;
+        message?: any;
         confirmColor?: "red" | "green" | "amber";
     }>({ show: false });
 
@@ -89,13 +90,15 @@ export const HistoryPage = () => {
             title: "تأیید پرداخت",
             message: "آیا از پرداخت این سفارش مطمئن هستید؟",
             confirmColor: "green",
-            action: async () => {
+            action: async (_?: Account | null, selectedPaymentMethod?: string) => {
                 try {
                     const date = new Date();
                     const paidDate = date.getTime();
                     item.paidDate = paidDate;
+                    item.paymentMethod = selectedPaymentMethod || "کارتخوان";
                     await addPaidOrderFromUnpaid(item);
                     await loadOrders();
+                    console.log("✅ Payment method saved:", selectedPaymentMethod);
                 } catch (error) {
                     console.error(error);
                 }
@@ -320,9 +323,10 @@ export const HistoryPage = () => {
                 title={modal.title}
                 message={modal.message}
                 confirmColor={modal.confirmColor}
-                onCancel={() => setModal({ show: false })}
-                onConfirm={() => {
-                    modal.action?.();
+                showPaymentSelect={modal.title === "تأیید پرداخت"} // ✅ Only show payment selector in paid confirmation
+                onCancel={() => {setModal({ show: false })}}
+                onConfirm={async (selectedAccount, selectedPaymentMethod) => {
+                    await modal.action?.(selectedAccount ?? null, selectedPaymentMethod);
                     setModal({ show: false });
                 }}
             />

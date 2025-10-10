@@ -263,7 +263,8 @@ export async function addPaidOrder(data: any) {
 }
 export async function addPaidOrderFromUnpaid(data: any) {
     const database = await initDB();
-    const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
+    const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data;
+    console.log(paymentMethod)
     await database.execute(
         `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description]
