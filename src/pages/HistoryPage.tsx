@@ -171,6 +171,10 @@ export const HistoryPage = () => {
                                                 <div className="absolute right-3 z-10 bg-white px-2 py-1 rounded-full shadow-sm border text-gray-700 font-bold ">
                                                     {orders.length}x
                                                 </div>
+                                                <div className="absolute left-3 z-10 bg-white px-2 py-1 rounded-full shadow-sm border text-gray-700 font-bold ">
+                                                    {orders.reduce((acc, item) => acc + item.totalPrice, 0).toLocaleString()} تومان
+                                                </div>
+
                                                 <div className="absolute left-0 right-0 h-px bg-indigo-200" />
                                                 <span className="relative z-10 bg-white px-6 py-1 rounded-full shadow-sm border text-gray-700 font-bold text-lg">
                                                     {label}

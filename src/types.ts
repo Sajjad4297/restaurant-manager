@@ -19,6 +19,7 @@ export type OrderItem = {
     paidTime?: string;
     time?: string;
     paid?: 0 | 1;
+    status?: 'paid' | 'unpaid'
 }
 export type FoodItem = {
     id: number;
@@ -44,4 +45,16 @@ export type Stats = {
     totalPrice: number;
     date: number;
     foods: FoodItem[];
+}
+export type Account = {
+  id?: number;
+  accountName: string;
+  description?: string;
+  totalDebt: number;
+}
+export type Transaction ={
+    id?: number;
+    amount:number;
+    time:string;
+    note?: string;
 }

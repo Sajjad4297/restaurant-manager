@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { MenuItem } from '../types'
+import type { MenuItem, Account, Transaction, OrderItem } from '../types'
 // Hold one instance for reuse
 let db: Database | null = null;
 
@@ -33,20 +33,6 @@ export async function initDB() {
         `);
 
         await db.execute(`
-            CREATE TABLE IF NOT EXISTS paid_orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                items TEXT NOT NULL, -- JSON string of items
-                total_price REAL NOT NULL,
-                total_quantity REAL NOT NULL,
-                customer_name TEXT,
-                customer_phone TEXT,
-                customer_address TEXT,
-                description TEXT,
-                order_time REAL NOT NULL,
-                paid_time REAL NOT NULL
-            )
-        `);
-        await db.execute(`
             CREATE TABLE IF NOT EXISTS unpaid_orders (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 items TEXT NOT NULL, -- JSON string of items
@@ -60,6 +46,59 @@ export async function initDB() {
             )
         `);
 
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS paid_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                items TEXT NOT NULL, -- JSON string of items
+                total_price REAL NOT NULL,
+                total_quantity REAL NOT NULL,
+                customer_name TEXT,
+                customer_phone TEXT,
+                customer_address TEXT,
+                description TEXT,
+                order_time REAL NOT NULL,
+                paid_time REAL NOT NULL
+            )
+        `);
+        await db.execute('PRAGMA foreign_keys = ON');
+
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS accounts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_name TEXT NOT NULL,
+                description TEXT,
+                total_debt REAL NOT NULL DEFAULT 0
+            )
+        `);
+
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS account_orders (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                items TEXT NOT NULL, -- JSON string of items
+                total_price REAL NOT NULL,
+                total_quantity REAL NOT NULL,
+                customer_name TEXT,
+                customer_phone TEXT,
+                customer_address TEXT,
+                description TEXT,
+                order_time REAL NOT NULL,
+                account_id INTEGER NOT NULL,
+                FOREIGN KEY (account_id) REFERENCES accounts (id)
+                    ON DELETE CASCADE
+                    ON UPDATE CASCADE
+            )
+        `);
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                date TEXT NOT NULL DEFAULT (datetime('now')),
+                note TEXT,
+                FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+            );
+
+                `)
 
     }
     return db;
@@ -270,4 +309,135 @@ export async function getDataFromYesterday() {
         order.foods = JSON.parse(order.foods);
     })
     return result;
+}
+// ACCOUNTS FUNCTIONS
+export const getAccounts = async (): Promise<Account[]> => {
+    try {
+        const database = await initDB();
+        const result = await database.select('SELECT id, account_name AS accountName, description, total_debt AS totalDebt FROM accounts');
+        return result as Account[];
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const addAccount = async (account: Partial<Account>) => {
+    try {
+        const database = await initDB();
+        const { accountName, description, totalDebt } = account;
+
+        await database.execute(
+            `INSERT INTO accounts (account_name, description, total_debt) VALUES (?, ?, ?)`,
+            [accountName, description, totalDebt]
+        );
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const updateAccount = async (id: number, account: Partial<Account>) => {
+    try {
+        const database = await initDB();
+        const { accountName, description } = account;
+        await
+            database.execute(`
+            UPDATE accounts SET
+            account_name=?,
+            description=?
+            WHERE id = ? `, [accountName, description, id]);
+
+
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const deleteAccount = async (id: number) => {
+    try {
+        const database = await initDB();
+        await database.execute('DELETE FROM accounts WHERE id = ?', [id])
+    } catch (error) {
+        throw error;
+    }
+};
+export async function addAccountOrder(accountId: number, data: OrderItem) {
+    try {
+        const database = await initDB();
+        const { id, foods, totalPrice, totalQuantity, date, name, phone, address, description } = data
+        await database.execute(
+            `INSERT INTO account_orders (items, total_price, total_quantity, order_time, customer_name, customer_phone, customer_address, description, account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [JSON.stringify(foods), totalPrice, totalQuantity, date, name, phone, address, description, accountId]
+        );
+        await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
+        await database.execute('UPDATE accounts SET total_debt = total_debt + ? WHERE id = ?', [totalPrice, accountId])
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function getAccountOrders(accountId: number) {
+    try {
+        const database = await initDB();
+        const result: any[] = await database.select(
+            `SELECT
+                id,
+                items AS foods,
+                total_price AS totalPrice,
+                total_quantity AS totalQuantity,
+                customer_name AS name,
+                customer_phone AS phone,
+                customer_address AS address,
+                description,
+                order_time AS date
+                FROM account_orders
+                WHERE account_id = ?
+                ORDER BY order_time DESC`,
+            [accountId]
+        );
+
+        result.forEach((order) => {
+            order.foods = JSON.parse(order.foods);
+        });
+        return result;
+
+    } catch (error) {
+        throw error;
+    }
+}
+export async function getAccountTransactions(accountId: number) {
+    try {
+        const database = await initDB();
+        const rows: Transaction[] = await database.select("SELECT * FROM transactions WHERE account_id = ? ORDER BY id DESC", [accountId]);
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function addTransaction(accountId: number, amount: number) {
+    try {
+        const database = await initDB();
+        await database.execute("INSERT INTO transactions (account_id, amount) VALUES (?, ?)", [accountId, amount]);
+    } catch (error) {
+        throw error;
+    }
+}
+export async function updateTransactionNote(id: number, note: string) {
+    try {
+        const database = await initDB();
+        await database.execute("UPDATE transactions SET note = ? WHERE id = ?", [note, id]);
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function updateAccountDebt(accountId: number, paidDebt: number) {
+    try {
+        const database = await initDB();
+        await database.execute("UPDATE accounts SET total_debt = total_debt - ? WHERE id = ?", [paidDebt, accountId]);
+    } catch (error) {
+        throw error;
+    }
 }
