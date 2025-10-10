@@ -34,7 +34,9 @@ export const DashboardPage = () => {
         const foodMap: Record<string, number> = {};
         stats.forEach(stat => {
             stat.foods.forEach(food => {
-                foodMap[food.title] = (foodMap[food.title] || 0) + food.quantity;
+                if (food.type === "food") {
+                    foodMap[food.title] = (foodMap[food.title] || 0) + food.quantity;
+                }
             });
         });
         const sorted = Object.entries(foodMap).sort((a, b) => b[1] - a[1]);
@@ -83,9 +85,8 @@ export const DashboardPage = () => {
                         دیروز: {yesterdayTotal.toLocaleString()} تومان
                     </p>
                     <p
-                        className={`mt-2 font-semibold ${
-                            priceChange >= 0 ? "text-green-200" : "text-red-200"
-                        }`}
+                        className={`mt-2 font-semibold ${priceChange >= 0 ? "text-green-200" : "text-red-200"
+                            }`}
                     >
                         {priceChange >= 0 ? "⬆️ افزایش" : "⬇️ کاهش"}{" "}
                         {Math.abs(priceChange).toFixed(1)}٪
@@ -99,9 +100,8 @@ export const DashboardPage = () => {
                     <p className="text-3xl font-bold mb-1">{todayQty} عدد</p>
                     <p className="text-sm opacity-90">دیروز: {yesterdayQty} عدد</p>
                     <p
-                        className={`mt-2 font-semibold ${
-                            qtyChange >= 0 ? "text-green-200" : "text-red-200"
-                        }`}
+                        className={`mt-2 font-semibold ${qtyChange >= 0 ? "text-green-200" : "text-red-200"
+                            }`}
                     >
                         {qtyChange >= 0 ? "⬆️ افزایش" : "⬇️ کاهش"}{" "}
                         {Math.abs(qtyChange).toFixed(1)}٪

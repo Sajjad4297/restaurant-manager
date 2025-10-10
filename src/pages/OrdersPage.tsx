@@ -1,20 +1,27 @@
 // src/pages/OrdersPage.tsx
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+<<<<<<< HEAD
 import type { OrderItem, FoodItem } from "../types";
 import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder } from "../lib/db";
 import { Trash2, Check, MessageSquareWarning } from "lucide-react";
+=======
+import type { OrderItem, FoodItem, Account } from "../types";
+import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder, addAccountOrder, getAccounts } from "../lib/db";
+import { Trash2, Check } from "lucide-react";
+>>>>>>> 63f2a7303340dbc7a03c8cb97fce87f08a54adb9
 import { ConfirmModal } from "../components/ConfirmModal";
 
 export const OrdersPage = () => {
     const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
+    const [accounts, setAccounts] = useState<Account[]>([]);
     const navigate = useNavigate();
 
     const [modal, setModal] = useState<{
         show: boolean;
-        action?: () => void;
+        action?: (account?: Account | null, paymentMethod?: string) => Promise<void> | void;
         title?: string;
-        message?: string;
+        message?: any;
         confirmColor?: "red" | "green" | "amber";
     }>({ show: false });
 
@@ -40,13 +47,15 @@ export const OrdersPage = () => {
             title: "تأیید پرداخت",
             message: "آیا از پرداخت این سفارش مطمئن هستید؟",
             confirmColor: "green",
-            action: async () => {
+            action: async (_?: Account | null, selectedPaymentMethod?: string) => {
                 try {
                     const date = new Date();
                     const paidDate = date.getTime();
                     item.paidDate = paidDate;
+                    item.paymentMethod = selectedPaymentMethod || "کارتخوان";
                     await addPaidOrder(item);
                     await loadPendingOrders();
+                    console.log("✅ Payment method saved:", selectedPaymentMethod);
                 } catch (error) {
                     console.error(error);
                 }
@@ -87,7 +96,30 @@ export const OrdersPage = () => {
             },
         });
     }
+    const submitAccountOrder = async (item: any) => {
+        const accountsList = await getAccounts();
+        setAccounts(accountsList);
 
+        setModal({
+            show: true,
+            title: "افزودن به حساب",
+            message: "این سفارش به کدام حساب اضافه شود؟",
+            confirmColor: "amber",
+            action: async (account?: Account | null) => {
+                if (!account?.id) {
+                    alert("لطفاً یک حساب انتخاب کنید.");
+                    return;
+                }
+                try {
+                    await addAccountOrder(account.id, item);
+                    await loadPendingOrders();
+                } catch (error) {
+                    console.error(error);
+                    alert("خطا در افزودن به حساب");
+                }
+            },
+        });
+    };
     return (
         <div className="p-6 flex flex-col items-center bg-gray-50 ">
             {/* Title / New Order Button */}
@@ -179,8 +211,18 @@ export const OrdersPage = () => {
                                             className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
                                             پرداخت نشد
                                         </button>
+                                        <button
+                                            onClick={() => submitAccountOrder(item)}
+                                            className="w-full cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
+                                            افزودن به حساب
+                                        </button>
+
                                     </div> :
+<<<<<<< HEAD
                                     <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده </div>
+=======
+                                    <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده ({item.paymentMethod}) </div>
+>>>>>>> 63f2a7303340dbc7a03c8cb97fce87f08a54adb9
                                 }
                             </div>
                         </div>
@@ -192,9 +234,11 @@ export const OrdersPage = () => {
                 title={modal.title}
                 message={modal.message}
                 confirmColor={modal.confirmColor}
-                onCancel={() => setModal({ show: false })}
-                onConfirm={() => {
-                    modal.action?.();
+                accounts={accounts}
+                showPaymentSelect={modal.title === "تأیید پرداخت"} // ✅ Only show payment selector in paid confirmation
+                onCancel={() => {setModal({ show: false });setAccounts([])}}
+                onConfirm={async (selectedAccount, selectedPaymentMethod) => {
+                    await modal.action?.(selectedAccount ?? null, selectedPaymentMethod);
                     setModal({ show: false });
                 }}
             />

@@ -7,6 +7,8 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { NewOrderPage } from "./pages/NewOrderPage";
 import { getUnpaidCount } from "./lib/db"; // <-- add this import
 import { useEffect, useState } from "react";
+import { AccountsPage } from "./pages/AccountsPage";
+import { AccountHistoryPage } from "./pages/AccountHistoryPage";
 
 const Layout = () => {
     const [historyCount, setHistoryCount] = useState<number>(0);
@@ -67,6 +69,15 @@ const Layout = () => {
                             </span>
                         )}
                     </div>
+                    <NavLink
+                        to="/accounts"
+                        className={({ isActive }) =>
+                            `hover:underline ${isActive ? "font-bold text-yellow-400" : ""}`
+                        }
+                    >
+                        حساب ها
+                    </NavLink>
+
                 </nav>
             </header>
 
@@ -79,6 +90,8 @@ const Layout = () => {
                     <Route path="/menu" element={<MenuPage />} />
                     <Route path="/history" element={<HistoryPage />} />
                     <Route path="/dashboard" element={<DashboardPage />} />
+                    <Route path="/accounts" element={<AccountsPage />} />
+                    <Route path="/accounts/:id/history" element={<AccountHistoryPage />} />
                     <Route path="*" element={<h2 className="text-red-600">صفحه پیدا نشد (۴۰۴)</h2>} />
                 </Routes>
             </main>

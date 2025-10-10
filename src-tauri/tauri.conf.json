@@ -1,7 +1,11 @@
 {
     "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
     "productName": "Restaurant Manager",
+<<<<<<< HEAD
     "version": "1.0.0",
+=======
+    "version": "1.2.0",
+>>>>>>> 63f2a7303340dbc7a03c8cb97fce87f08a54adb9
     "identifier": "com.sajjad.restaurant-manager",
     "build": {
         "frontendDist": "../dist",
