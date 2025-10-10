@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { getDataFromYesterday } from "../lib/db";
-import type { Stats } from "../types";
+import { getDataFromYesterday, getDataFromCurrentMonth } from "../lib/db";
+import type { Stats, OrderItem } from "../types";
+import { MonthlySalesChart } from "../components/MonthlySalesChart";
 
 export const DashboardPage = () => {
     const [todayStats, setTodayStats] = useState<Stats[]>([]);
     const [yesterdayStats, setYesterdayStats] = useState<Stats[]>([]);
-
+    const [currentMonthStats, setCurrentMonthStats] = useState<OrderItem[]>([]);
     useEffect(() => {
         loadData();
     }, []);
@@ -19,9 +20,12 @@ export const DashboardPage = () => {
 
         const todayData = data.filter(item => item.date >= todayUnix);
         const yesterdayData = data.filter(item => item.date < todayUnix);
-
+        const currentMonthData = await getDataFromCurrentMonth();
         setTodayStats(todayData);
         setYesterdayStats(yesterdayData);
+        setCurrentMonthStats(currentMonthData);
+        console.log(currentMonthData);
+
     };
 
     const calcTotalPrice = (stats: Stats[]) =>
@@ -117,7 +121,19 @@ export const DashboardPage = () => {
                     <p className="text-lg">کم‌فروش‌ترین غذای امروز</p>
                     <p className="text-xl font-bold mt-1">{getLowestSellingFood(todayStats)}</p>
                 </div>
+
+
+                {/* ADDED: The monthly sales chart */}
+
             </div>
+            <div className="w-full mx-auto pt-4">
+                {
+                    currentMonthStats &&
+                    <MonthlySalesChart sales={currentMonthStats} />
+
+                }
+            </div>
+
         </div>
     );
 };

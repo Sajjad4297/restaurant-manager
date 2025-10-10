@@ -14,7 +14,7 @@ export type OrderItem = {
     phone?: string;
     address?: string;
     description?: string;
-    date: string;
+    date: number;
     paidDate?: string;
     paidTime?: string;
     time?: string;

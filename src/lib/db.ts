@@ -321,6 +321,47 @@ export async function getDataFromYesterday() {
     })
     return result;
 }
+export async function getDataFromCurrentMonth() {
+    const database = await initDB();
+
+    // Get current Persian date
+    const now = new Date();
+    const persianDate = new Intl.DateTimeFormat('en-u-ca-persian', {
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric'
+    }).format(now);
+
+    // Parse the Persian date string (format: YYYY/M/D)
+    const [persianYear, persianMonth, persianDay] : any = persianDate.split('/').map(Number);
+
+    // First day of current Persian month
+    const firstDayOfMonth = new Date(
+        parseInt(persianYear),
+        parseInt(persianMonth) - 1, // Persian months are 0-based in this API
+        1
+    );
+
+    // Convert to Unix timestamp (start of the month)
+    const startOfMonthUnix = Math.floor(firstDayOfMonth.getTime());
+
+    const result: any[] = await database.select(`
+        SELECT
+        id,
+        items AS foods,
+        total_price AS totalPrice,
+        total_quantity AS totalQuantity,
+        paid_time AS date
+        FROM paid_orders
+        WHERE paid_time >= ?
+        ORDER BY id DESC;`, [startOfMonthUnix]);
+
+    result.map(order => {
+        order.foods = JSON.parse(order.foods);
+    });
+
+    return result;
+}
 // ACCOUNTS FUNCTIONS
 export const getAccounts = async (): Promise<Account[]> => {
     try {
