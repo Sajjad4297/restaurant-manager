@@ -88,7 +88,7 @@ export const AccountsPage = () => {
                                     className="w-full border rounded-lg p-2"
                                 />
                             </div>
-                            <div>
+                            {!editingId && <div>
                                 <label className="block font-medium mb-1">کل بدهی</label>
                                 <input
                                     type="number"
@@ -98,7 +98,7 @@ export const AccountsPage = () => {
                                     className="w-full border rounded-lg p-2"
                                 />
                             </div>
-                            <div className="flex justify-end gap-2 mt-2">
+                            }                            <div className="flex justify-end gap-2 mt-2">
                                 <button
                                     type="button"
                                     onClick={() => { setShowForm(false); setEditingId(null); }}

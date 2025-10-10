@@ -23,6 +23,7 @@ export async function initDB() {
                 items TEXT NOT NULL, -- JSON string of items
                 total_price REAL NOT NULL,
                 total_quantity REAL NOT NULL,
+                payment_method TEXT,
                 customer_name TEXT,
                 customer_phone TEXT,
                 customer_address TEXT,
@@ -56,6 +57,7 @@ export async function initDB() {
                 customer_phone TEXT,
                 customer_address TEXT,
                 description TEXT,
+                payment_method TEXT NOT NULL DEFAULT 'کارتخوان',
                 order_time REAL NOT NULL,
                 paid_time REAL NOT NULL
             )
@@ -163,6 +165,7 @@ export async function getPendingOrders() {
             items AS foods,
             total_price AS totalPrice,
             total_quantity AS totalQuantity,
+            payment_method AS paymentMethod,
             customer_name AS name,
             customer_phone AS phone,
             customer_address AS address,
@@ -243,21 +246,27 @@ export async function getUnpaidCount() {
 // PAID ORDER FUNCTIONS
 // ---------------------------
 export async function addPaidOrder(data: any) {
-    const database = await initDB();
-    const { id, foods, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
-    await database.execute(
-        `INSERT INTO paid_orders (items, total_price,total_quantity, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [JSON.stringify(foods), totalPrice, totalQuantity, date, paidDate, name, phone, address, description]
-    );
-    await database.execute(`UPDATE pending_orders SET paid = 1 WHERE id = ?`, [id]);
+    try {
+        const database = await initDB();
+        const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
+        await database.execute(
+            `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description]
+        );
+        console.log(id, paymentMethod)
+        await database.execute(`UPDATE pending_orders SET paid = 1, payment_method = ? WHERE id = ?`, [paymentMethod, id]);
 
+
+    } catch (error) {
+        throw error;
+    }
 }
 export async function addPaidOrderFromUnpaid(data: any) {
     const database = await initDB();
-    const { id, foods, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
+    const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
     await database.execute(
-        `INSERT INTO paid_orders (items, total_price,total_quantity, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?,  ?, ?, ?, ?)`,
-        [JSON.stringify(foods), totalPrice, totalQuantity, date, paidDate, name, phone, address, description]
+        `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description]
     );
     await database.execute(`DELETE FROM unpaid_orders WHERE id = ?`, [id]);
 
@@ -272,6 +281,7 @@ export async function getPaidOrders() {
             items AS foods,
             total_price AS totalPrice,
             total_quantity AS totalQuantity,
+            payment_method AS paymentMethod,
             customer_name AS name,
             customer_phone AS phone,
             customer_address AS address,

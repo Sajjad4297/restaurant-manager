@@ -19,7 +19,8 @@ export type OrderItem = {
     paidTime?: string;
     time?: string;
     paid?: 0 | 1;
-    status?: 'paid' | 'unpaid'
+    status?: 'paid' | 'unpaid';
+    paymentMethod?: any;
 }
 export type FoodItem = {
     id: number;

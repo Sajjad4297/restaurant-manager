@@ -143,9 +143,9 @@ export const HistoryPage = () => {
                         <tr>
                             <th className="p-3 text-center">شناسه</th>
                             <th className="p-3 text-center">نام</th>
-                            <th className="p-3 text-center">مبلغ کل</th>
-                            <th className="p-3 text-center">وضعیت</th>
-                            <th className="p-3 text-center">
+                            <th className="p-3 text-center">مبلغ کل</th>{showPaid &&
+                                <th className="p-3 text-center">نحوه پرداخت</th>
+                            }<th className="p-3 text-center">
                                 {showPaid ? "زمان پرداخت" : "زمان ثبت سفارش"}
                             </th>
                             <th className="p-3 text-center">جزئیات</th>
@@ -195,16 +195,18 @@ export const HistoryPage = () => {
                                             <td className="p-3 text-center font-semibold text-gray-700">
                                                 {o.totalPrice.toLocaleString()} تومان
                                             </td>
-                                            <td className="p-3 text-center">
-                                                <span
-                                                    className={`px-3 py-1 rounded-full text-sm font-bold ${showPaid
-                                                        ? "bg-green-100 text-green-700"
-                                                        : "bg-red-100 text-red-600"
-                                                        }`}
-                                                >
-                                                    {showPaid ? "پرداخت شده" : "پرداخت نشده"}
-                                                </span>
-                                            </td>
+
+                                            {showPaid &&
+                                                <td className="p-3 text-center">
+                                                    <span
+                                                        className={`px-3 py-1 rounded-full text-sm font-bold ${showPaid
+                                                            ? "bg-green-100 text-green-700"
+                                                            : "bg-red-100 text-red-600"
+                                                            }`}
+                                                    >
+                                                        {o.paymentMethod}
+                                                    </span>
+                                                </td>}
                                             <td className="p-3 text-center text-gray-500 text-sm">
                                                 {showPaid ? o.paidTime : o.time}
                                             </td>

@@ -13,9 +13,9 @@ export const OrdersPage = () => {
 
     const [modal, setModal] = useState<{
         show: boolean;
-        action?: (account?: Account | null) => Promise<void> | void;
+        action?: (account?: Account | null, paymentMethod?: string) => Promise<void> | void;
         title?: string;
-        message?: string;
+        message?: any;
         confirmColor?: "red" | "green" | "amber";
     }>({ show: false });
 
@@ -41,13 +41,15 @@ export const OrdersPage = () => {
             title: "تأیید پرداخت",
             message: "آیا از پرداخت این سفارش مطمئن هستید؟",
             confirmColor: "green",
-            action: async () => {
+            action: async (_?: Account | null, selectedPaymentMethod?: string) => {
                 try {
                     const date = new Date();
                     const paidDate = date.getTime();
                     item.paidDate = paidDate;
+                    item.paymentMethod = selectedPaymentMethod || "کارتخوان";
                     await addPaidOrder(item);
                     await loadPendingOrders();
+                    console.log("✅ Payment method saved:", selectedPaymentMethod);
                 } catch (error) {
                     console.error(error);
                 }
@@ -204,8 +206,9 @@ export const OrdersPage = () => {
                                         </button>
 
                                     </div> :
-                                    <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده </div>
-                                }                            </div>
+                                    <div className="flex text-green-500 justify-center mt-3"  > <Check color="green" /> پرداخت شده ({item.paymentMethod}) </div>
+                                }
+                            </div>
                         </div>
                     ))}
                 </div>
@@ -216,12 +219,10 @@ export const OrdersPage = () => {
                 message={modal.message}
                 confirmColor={modal.confirmColor}
                 accounts={accounts}
-                onCancel={() => {
-                    setModal({ show: false });
-                }}
-                onConfirm={async (selectedAccount) => {
-                    // modal.action will be called with the selectedAccount right away (no race)
-                    await modal.action?.(selectedAccount ?? null);
+                showPaymentSelect={modal.title === "تأیید پرداخت"} // ✅ Only show payment selector in paid confirmation
+                onCancel={() => {setModal({ show: false });setAccounts([])}}
+                onConfirm={async (selectedAccount, selectedPaymentMethod) => {
+                    await modal.action?.(selectedAccount ?? null, selectedPaymentMethod);
                     setModal({ show: false });
                 }}
             />

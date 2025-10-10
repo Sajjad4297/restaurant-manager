@@ -249,6 +249,10 @@ export const NewOrderPage = () => {
                                                 (item.quantity > 0 ? "ring-4 ring-orange-300" : "")
                                             }
                                         >
+                                            <div
+                                                className="absolute right-0 left-0 top-0 bottom-0"
+                                                onClick={() => handleQuantityChange(item.id, item.price, 1)}
+                                            ></div>
                                             <div className="w-40 h-40 mb-4 flex items-center justify-center bg-gray-100 rounded-xl overflow-hidden">
                                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                                             </div>
@@ -263,7 +267,7 @@ export const NewOrderPage = () => {
                                             <div className="absolute bottom-3 flex items-center gap-2 z-10">
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, item.price, 1)}
-                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors text-lg font-bold shadow-md"
+                                                    className="w-10 z-10 h-10 cursor-pointer flex items-center justify-center bg-green-500 text-white rounded-full hover:bg-green-600 transition-colors text-lg font-bold shadow-md"
                                                 >
                                                     +
                                                 </button>
@@ -274,14 +278,14 @@ export const NewOrderPage = () => {
                                                         type="text"
                                                         value={item.quantity}
                                                         onChange={(e) => handleInputChange(e, item.id, item.price)}
-                                                        className="w-14 text-center text-xl text-orange-700 font-bold border border-orange-400 rounded-md bg-white shadow-sm"
+                                                        className="w-14 z-10 text-center text-xl text-orange-700 font-bold border border-orange-400 rounded-md bg-white shadow-sm"
                                                     />
                                                 ) :
                                                     <div className="w-14"></div>
                                                 }
                                                 <button
                                                     onClick={() => handleQuantityChange(item.id, item.price, -1)}
-                                                    className="w-10 h-10 cursor-pointer flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors text-lg font-bold shadow-md"
+                                                    className="w-10 z-10 h-10 cursor-pointer flex items-center justify-center bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors text-lg font-bold shadow-md"
                                                 >
                                                     -
                                                 </button>
@@ -318,6 +322,11 @@ export const NewOrderPage = () => {
                                                 (item.quantity > 0 ? "ring-4 ring-blue-300" : "")
                                             }
                                         >
+                                            <div
+                                                className="absolute right-0 left-0 top-0 bottom-0"
+                                                onClick={() => handleQuantityChange(item.id, item.price, 1)}
+                                            ></div>
+
                                             <div className="w-40 h-40 mb-4 flex items-center justify-center bg-gray-100 rounded-xl overflow-hidden">
                                                 <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                                             </div>
