@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OrderItem, FoodItem, Account } from "../types";
-import { getPendingOrders, addPaidOrder, deletePendingOrder, addUnpaidOrder, addAccountOrder, getAccounts } from "../lib/db";
+import { getPendingOrders, addPaidOrder, deletePendingOrder, addAccountOrder, getAccounts } from "../lib/db";
 import { Trash2, Check } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
@@ -50,22 +50,6 @@ export const OrdersPage = () => {
                     await addPaidOrder(item);
                     await loadPendingOrders();
                     console.log("✅ Payment method saved:", selectedPaymentMethod);
-                } catch (error) {
-                    console.error(error);
-                }
-            },
-        });
-    };
-    const submitUnpaidOrder = (item: any) => {
-        setModal({
-            show: true,
-            title: "تأیید عدم پرداخت",
-            message: "آیا مطمئن هستید که این سفارش پرداخت نشده است؟",
-            confirmColor: "amber",
-            action: async () => {
-                try {
-                    await addUnpaidOrder(item);
-                    await loadPendingOrders();
                 } catch (error) {
                     console.error(error);
                 }
@@ -201,13 +185,8 @@ export const OrdersPage = () => {
                                             پرداخت شد
                                         </button>
                                         <button
-                                            onClick={() => submitUnpaidOrder(item)}
-                                            className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
-                                            پرداخت نشد
-                                        </button>
-                                        <button
                                             onClick={() => submitAccountOrder(item)}
-                                            className="w-full cursor-pointer bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
+                                            className="flex-1 cursor-pointer bg-red-500 hover:bg-red-600 text-white py-2 rounded-lg font-medium shadow-sm transition-all">
                                             افزودن به حساب
                                         </button>
 

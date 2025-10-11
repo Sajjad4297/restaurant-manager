@@ -5,23 +5,11 @@ import { MenuPage } from "./pages/MenuPage";
 import { HistoryPage } from "./pages/HistoryPage";
 import { DashboardPage } from "./pages/DashboardPage";
 import { NewOrderPage } from "./pages/NewOrderPage";
-import { getUnpaidCount } from "./lib/db"; // <-- add this import
-import { useEffect, useState } from "react";
 import { AccountsPage } from "./pages/AccountsPage";
 import { AccountHistoryPage } from "./pages/AccountHistoryPage";
 
 const Layout = () => {
-    const [historyCount, setHistoryCount] = useState<number>(0);
 
-    useEffect(() => {
-        const loadCount = async () => {
-            const count = await getUnpaidCount();
-            setHistoryCount(count);
-        };
-        loadCount();
-        const interval = setInterval(loadCount, 5000); // every 5 seconds
-        return () => clearInterval(interval);
-    }, []);
 
     return (
         <div className="h-screen flex flex-col bg-gray-100 font-[Vazirmatn]" dir="rtl">
@@ -63,11 +51,6 @@ const Layout = () => {
                         >
                             تاریخچه
                         </NavLink>
-                        {historyCount > 0 && (
-                            <span className="absolute -top-2 -left-3 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
-                                {historyCount}
-                            </span>
-                        )}
                     </div>
                     <NavLink
                         to="/accounts"

@@ -33,19 +33,6 @@ export async function initDB() {
             )
         `);
 
-        await db.execute(`
-            CREATE TABLE IF NOT EXISTS unpaid_orders (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                items TEXT NOT NULL, -- JSON string of items
-                total_price REAL NOT NULL,
-                total_quantity REAL NOT NULL,
-                customer_name TEXT,
-                customer_phone TEXT,
-                customer_address TEXT,
-                description TEXT,
-                order_time REAL NOT NULL
-            )
-        `);
 
         await db.execute(`
             CREATE TABLE IF NOT EXISTS paid_orders (
@@ -202,45 +189,6 @@ export async function deletePendingOrder(id: number) {
     await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
 }
 
-// UNPAID ORDER FUNCTIONS
-// ---------------------------
-export async function addUnpaidOrder(data: any) {
-    const database = await initDB();
-    const { id, foods, totalPrice, totalQuantity, date, name, phone, address, description } = data
-    await database.execute(
-        `INSERT INTO unpaid_orders (items, total_price,total_quantity, order_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [JSON.stringify(foods), totalPrice, totalQuantity, date, name, phone, address, description]
-    );
-    await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
-
-}
-
-export async function getUnpaidOrders() {
-    const database = await initDB();
-    const result: any[] = await
-        database.select(`
-            SELECT
-            id,
-            items AS foods,
-            total_price AS totalPrice,
-            total_quantity AS totalQuantity,
-            customer_name AS name,
-            customer_phone AS phone,
-            customer_address AS address,
-            description,
-            order_time AS date FROM unpaid_orders ORDER By id DESC `);
-    result.map(order => {
-        order.foods = JSON.parse(order.foods);
-    })
-    return result;
-}
-
-export async function getUnpaidCount() {
-    const database = await initDB();
-    const result = await database.select<{ count: number }[]>("SELECT COUNT(*) as count FROM unpaid_orders");
-    return result[0]?.count || 0;
-}
-
 
 
 // PAID ORDER FUNCTIONS
@@ -333,7 +281,7 @@ export async function getDataFromCurrentMonth() {
     }).format(now);
 
     // Parse the Persian date string (format: YYYY/M/D)
-    const [persianYear, persianMonth, persianDay] : any = persianDate.split('/').map(Number);
+    const [persianYear, persianMonth] : any = persianDate.split('/').map(Number);
 
     // First day of current Persian month
     const firstDayOfMonth = new Date(

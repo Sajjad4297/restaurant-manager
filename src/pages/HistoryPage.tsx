@@ -1,9 +1,8 @@
 // src/pages/HistoryPage.tsx
 import React, { useEffect, useState } from "react";
-import { addPaidOrderFromUnpaid, getPaidOrders, getUnpaidOrders } from "../lib/db";
-import type { Account, OrderItem } from "../types";
+import {  getPaidOrders } from "../lib/db";
+import type {  OrderItem } from "../types";
 import { XIcon } from "lucide-react";
-import { ConfirmModal } from "../components/ConfirmModal";
 
 const groupOrdersByDay = (orders: OrderItem[]) => {
     const groups: Record<string, OrderItem[]> = {};
@@ -38,25 +37,15 @@ const groupOrdersByDay = (orders: OrderItem[]) => {
 
 export const HistoryPage = () => {
     const [paidOrders, setPaidOrders] = useState<OrderItem[]>([]);
-    const [unpaidOrders, setUnpaidOrders] = useState<OrderItem[]>([]);
-    const [showPaid, setShowPaid] = useState(false); // default: show unpaid
     const [showDetails, setShowDetails] = useState<OrderItem | null>();
     useEffect(() => {
         loadOrders();
     }, []);
 
-    const [modal, setModal] = useState<{
-        show: boolean;
-        action?: (account?: Account | null, paymentMethod?: string) => Promise<void> | void;
-        title?: string;
-        message?: any;
-        confirmColor?: "red" | "green" | "amber";
-    }>({ show: false });
 
     async function loadOrders() {
         try {
             const paidItems = await getPaidOrders();
-            const unpaidItems = await getUnpaidOrders();
 
             const formatOrders = (orders: OrderItem[]) =>
                 orders.map((order) => {
@@ -74,37 +63,15 @@ export const HistoryPage = () => {
                     };
                 });
 
+
             setPaidOrders(formatOrders(paidItems));
-            setUnpaidOrders(formatOrders(unpaidItems));
-            if (unpaidItems.length == 0) setShowPaid(true);
         } catch (error) {
             console.error("Error loading orders:", error);
         }
     }
 
-    const displayedOrders = showPaid ? paidOrders : unpaidOrders;
+    const displayedOrders = paidOrders;
 
-    const submitPaidOrder = (item: any) => {
-        setModal({
-            show: true,
-            title: "تأیید پرداخت",
-            message: "آیا از پرداخت این سفارش مطمئن هستید؟",
-            confirmColor: "green",
-            action: async (_?: Account | null, selectedPaymentMethod?: string) => {
-                try {
-                    const date = new Date();
-                    const paidDate = date.getTime();
-                    item.paidDate = paidDate;
-                    item.paymentMethod = selectedPaymentMethod || "کارتخوان";
-                    await addPaidOrderFromUnpaid(item);
-                    await loadOrders();
-                    console.log("✅ Payment method saved:", selectedPaymentMethod);
-                } catch (error) {
-                    console.error(error);
-                }
-            },
-        });
-    };
 
     return (
         <div className="p-8 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen flex flex-col items-center">
@@ -112,32 +79,6 @@ export const HistoryPage = () => {
                 سوابق سفارش‌ها
             </h2>
 
-            {/* Toggle between Paid / Unpaid */}
-            <div className="flex items-center gap-4 mb-8 bg-white/80 backdrop-blur-md px-6 py-3 rounded-full shadow-lg border">
-                <span
-                    className={`font-semibold transition-all ${showPaid ? "text-green-600" : "text-gray-500"
-                        }`}
-                >
-                    پرداخت شده
-                </span>
-
-                <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                        type="checkbox"
-                        checked={showPaid}
-                        onChange={() => setShowPaid(!showPaid)}
-                        className="sr-only peer"
-                    />
-                    <div className="w-14 h-8 bg-red-400 peer-focus:outline-none rounded-full peer peer-checked:bg-green-400 transition-all after:content-[''] after:absolute after:top-1 after:left-1 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-6 after:w-6 after:transition-all peer-checked:after:translate-x-6 shadow-inner"></div>
-                </label>
-
-                <span
-                    className={`font-semibold transition-all ${!showPaid ? "text-red-600" : "text-gray-500"
-                        }`}
-                >
-                    پرداخت نشده
-                </span>
-            </div>
 
             {/* Orders table */}
             <div className="w-full max-w-7xl bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
@@ -146,22 +87,17 @@ export const HistoryPage = () => {
                         <tr>
                             <th className="p-3 text-center">شناسه</th>
                             <th className="p-3 text-center">نام</th>
-                            <th className="p-3 text-center">مبلغ کل</th>{showPaid &&
+                            <th className="p-3 text-center">مبلغ کل</th>
                                 <th className="p-3 text-center">نحوه پرداخت</th>
-                            }<th className="p-3 text-center">
-                                {showPaid ? "زمان پرداخت" : "زمان ثبت سفارش"}
-                            </th>
+                            <th className="p-3 text-center">زمان پرداخت</th>
                             <th className="p-3 text-center">جزئیات</th>
-                            {!showPaid && <th className="p-3 text-center">عملیات</th>}
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
                         {displayedOrders.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="p-6 text-center text-gray-500 font-medium">
-                                    {showPaid
-                                        ? "هیچ سفارش پرداخت‌شده‌ای وجود ندارد."
-                                        : "هیچ سفارش پرداخت‌نشده‌ای وجود ندارد."}
+                                        هیچ سفارش پرداخت‌شده‌ای وجود ندارد.
                                 </td>
                             </tr>
                         ) : (
@@ -199,19 +135,16 @@ export const HistoryPage = () => {
                                                 {o.totalPrice.toLocaleString()} تومان
                                             </td>
 
-                                            {showPaid &&
                                                 <td className="p-3 text-center">
                                                     <span
-                                                        className={`px-3 py-1 rounded-full text-sm font-bold ${showPaid
-                                                            ? "bg-green-100 text-green-700"
-                                                            : "bg-red-100 text-red-600"
-                                                            }`}
+                                                        className="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700"
+
                                                     >
                                                         {o.paymentMethod}
                                                     </span>
-                                                </td>}
+                                                </td>
                                             <td className="p-3 text-center text-gray-500 text-sm">
-                                                {showPaid ? o.paidTime : o.time}
+                                                {o.paidTime}
                                             </td>
                                             <td className="p-3 text-center">
                                                 <button
@@ -221,16 +154,6 @@ export const HistoryPage = () => {
                                                     مشاهده جزئیات
                                                 </button>
                                             </td>
-                                            {!showPaid && (
-                                                <td className="p-3 text-center">
-                                                    <button
-                                                        onClick={() => submitPaidOrder(o)}
-                                                        className="bg-green-500 cursor-pointer hover:bg-green-600 text-white px-5 py-2 rounded-lg shadow-md font-medium transition-all"
-                                                    >
-                                                        پرداخت شد
-                                                    </button>
-                                                </td>
-                                            )}
                                         </tr>
                                     ))}
                                 </React.Fragment>
@@ -318,18 +241,6 @@ export const HistoryPage = () => {
                     </div>
                 </div>
             )}
-            <ConfirmModal
-                show={modal.show}
-                title={modal.title}
-                message={modal.message}
-                confirmColor={modal.confirmColor}
-                showPaymentSelect={modal.title === "تأیید پرداخت"} // ✅ Only show payment selector in paid confirmation
-                onCancel={() => {setModal({ show: false })}}
-                onConfirm={async (selectedAccount, selectedPaymentMethod) => {
-                    await modal.action?.(selectedAccount ?? null, selectedPaymentMethod);
-                    setModal({ show: false });
-                }}
-            />
 
         </div>
     );
