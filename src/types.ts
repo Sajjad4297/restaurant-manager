@@ -13,6 +13,7 @@ export type OrderItem = {
     name?: string;
     phone?: string;
     address?: string;
+    isOutFood: boolean;
     description?: string;
     date: number;
     paidDate?: string;

@@ -160,7 +160,7 @@ export const ConfirmModal = ({
                         {/* Buttons */}
                         <div className="flex justify-center gap-4 mt-6">
                             <button
-                                onClick={onCancel}
+                                onClick={()=>{onCancel();setSearch("");}}
                                 className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold px-5 py-2 rounded-lg shadow-sm transition-all"
                             >
                                 {cancelText}
@@ -168,7 +168,7 @@ export const ConfirmModal = ({
 
                             <button
                                 ref={confirmBtnRef}
-                                onClick={handleConfirm}
+                                onClick={()=>{handleConfirm();setSearch("");}}
                                 className={`font-semibold px-5 py-2 rounded-lg text-white shadow-md transition-all
                   ${confirmColor === "red"
                                         ? "bg-red-500 hover:bg-red-600"

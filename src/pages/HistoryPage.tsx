@@ -1,8 +1,8 @@
 // src/pages/HistoryPage.tsx
 import React, { useEffect, useState } from "react";
-import {  getPaidOrders } from "../lib/db";
-import type {  OrderItem } from "../types";
-import { XIcon } from "lucide-react";
+import { getPaidOrders } from "../lib/db";
+import type { OrderItem } from "../types";
+import { ShoppingBag, XIcon } from "lucide-react";
 
 const groupOrdersByDay = (orders: OrderItem[]) => {
     const groups: Record<string, OrderItem[]> = {};
@@ -88,7 +88,7 @@ export const HistoryPage = () => {
                             <th className="p-3 text-center">شناسه</th>
                             <th className="p-3 text-center">نام</th>
                             <th className="p-3 text-center">مبلغ کل</th>
-                                <th className="p-3 text-center">نحوه پرداخت</th>
+                            <th className="p-3 text-center">نحوه پرداخت</th>
                             <th className="p-3 text-center">زمان پرداخت</th>
                             <th className="p-3 text-center">جزئیات</th>
                         </tr>
@@ -97,7 +97,7 @@ export const HistoryPage = () => {
                         {displayedOrders.length === 0 ? (
                             <tr>
                                 <td colSpan={7} className="p-6 text-center text-gray-500 font-medium">
-                                        هیچ سفارش پرداخت‌شده‌ای وجود ندارد.
+                                    هیچ سفارش پرداخت‌شده‌ای وجود ندارد.
                                 </td>
                             </tr>
                         ) : (
@@ -135,14 +135,14 @@ export const HistoryPage = () => {
                                                 {o.totalPrice.toLocaleString()} تومان
                                             </td>
 
-                                                <td className="p-3 text-center">
-                                                    <span
-                                                        className="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700"
+                                            <td className="p-3 text-center">
+                                                <span
+                                                    className="px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-700"
 
-                                                    >
-                                                        {o.paymentMethod}
-                                                    </span>
-                                                </td>
+                                                >
+                                                    {o.paymentMethod}
+                                                </span>
+                                            </td>
                                             <td className="p-3 text-center text-gray-500 text-sm">
                                                 {o.paidTime}
                                             </td>
@@ -195,6 +195,12 @@ export const HistoryPage = () => {
                                 <span className="font-semibold text-indigo-600">توضیحات:</span>{" "}
                                 {showDetails.description || "—"}
                             </p>
+                            {showDetails.isOutFood &&
+                                <div className="bg-blue-500 text-white flex max-w-fit items-center gap-1 px-2 py-1 rounded-full text-sm shadow-sm">
+                                    <ShoppingBag size={16} />
+                                    <span>بیرون‌بر</span>
+                                </div>
+                            }
                         </div>
 
                         <div className="mt-6 border-t pt-4">

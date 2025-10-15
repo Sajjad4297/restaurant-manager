@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OrderItem, FoodItem, Account } from "../types";
 import { getPendingOrders, addPaidOrder, deletePendingOrder, addAccountOrder, getAccounts } from "../lib/db";
-import { Trash2, Check } from "lucide-react";
+import { Trash2, Check, ShoppingBag } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
 export const OrdersPage = () => {
@@ -129,6 +129,13 @@ export const OrdersPage = () => {
                                 </div>
 
                             }
+                            {item.isOutFood && (
+                                <div className="absolute top-2 left-15 bg-blue-500 text-white flex items-center gap-1 px-2 py-1 rounded-full text-sm shadow-sm">
+                                    <ShoppingBag size={16} />
+                                    <span>بیرون‌بر</span>
+                                </div>
+                            )}
+
                             {/* 🗑️ Delete Icon */}
                             <button
                                 onClick={(e) => {
@@ -205,10 +212,11 @@ export const OrdersPage = () => {
                 confirmColor={modal.confirmColor}
                 accounts={accounts}
                 showPaymentSelect={modal.title === "تأیید پرداخت"} // ✅ Only show payment selector in paid confirmation
-                onCancel={() => {setModal({ show: false });setAccounts([])}}
+                onCancel={() => { setModal({ show: false }); setAccounts([]) }}
                 onConfirm={async (selectedAccount, selectedPaymentMethod) => {
                     await modal.action?.(selectedAccount ?? null, selectedPaymentMethod);
                     setModal({ show: false });
+                    setAccounts([]);
                 }}
             />
 

@@ -28,6 +28,7 @@ export async function initDB() {
                 customer_phone TEXT,
                 customer_address TEXT,
                 description TEXT,
+                is_out_food INTEGER NOT NULL DEFAULT 0,
                 paid INTEGER DEFAULT 0,
                 order_time REAL NOT NULL
             )
@@ -44,6 +45,7 @@ export async function initDB() {
                 customer_phone TEXT,
                 customer_address TEXT,
                 description TEXT,
+                is_out_food INTEGER NOT NULL DEFAULT 0,
                 payment_method TEXT NOT NULL DEFAULT 'کارتخوان',
                 order_time REAL NOT NULL,
                 paid_time REAL NOT NULL
@@ -70,6 +72,7 @@ export async function initDB() {
                 customer_phone TEXT,
                 customer_address TEXT,
                 description TEXT,
+                is_out_food INTEGER NOT NULL DEFAULT 0,
                 order_time REAL NOT NULL,
                 account_id INTEGER NOT NULL,
                 FOREIGN KEY (account_id) REFERENCES accounts (id)
@@ -88,7 +91,6 @@ export async function initDB() {
             );
 
                 `)
-
     }
     return db;
 }
@@ -135,11 +137,11 @@ export async function deleteMenuItem(id: number) {
 // ---------------------------
 // PENDING ORDER FUNCTIONS
 // ---------------------------
-export async function addPendingOrder(items: any[], totalPrice: number, totalQuantity: number, time: number, name: string, phone: string, address: string, description: string) {
+export async function addPendingOrder(items: any[], totalPrice: number, totalQuantity: number, time: number, name: string, phone: string, address: string, description: string, isOutFood: boolean) {
     const database = await initDB();
     await database.execute(
-        `INSERT INTO pending_orders (items, total_price,total_quantity, order_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-        [JSON.stringify(items), totalPrice, totalQuantity, time, name, phone, address, description]
+        `INSERT INTO pending_orders (items, total_price,total_quantity, order_time, customer_name, customer_phone, customer_address, description, is_out_food) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [JSON.stringify(items), totalPrice, totalQuantity, time, name, phone, address, description, isOutFood ? 1 : 0]
     );
 }
 
@@ -157,16 +159,20 @@ export async function getPendingOrders() {
             customer_phone AS phone,
             customer_address AS address,
             description,
+            is_out_food AS isOutFood,
             paid,
             order_time AS date FROM pending_orders ORDER BY order_time `);
     result.map(order => {
         order.foods = JSON.parse(order.foods);
+        order.isOutFood = order.isOutFood == 1 ? true : false;
+
     })
     return result;
 }
-export async function updatePendingOrder(id: number, items: any[], totalPrice: number, totalQuantity: number, name: string, phone: string, address: string, description: string) {
+export async function updatePendingOrder(id: number, items: any[], totalPrice: number, totalQuantity: number, name: string, phone: string, address: string, description: string, isOutFood: boolean) {
     try {
         const database = await initDB();
+
         await
             database.execute(`
             UPDATE pending_orders SET
@@ -176,8 +182,9 @@ export async function updatePendingOrder(id: number, items: any[], totalPrice: n
             customer_name=?,
             customer_phone=?,
             customer_address=?,
-            description=?
-            WHERE id = ? `, [JSON.stringify(items), totalPrice, totalQuantity, name, phone, address, description, id]);
+            description=?,
+            is_out_food=?
+            WHERE id = ? `, [JSON.stringify(items), totalPrice, totalQuantity, name, phone, address, description, isOutFood ? 1 : 0, id]);
     }
     catch (error) {
         throw error;
@@ -196,10 +203,10 @@ export async function deletePendingOrder(id: number) {
 export async function addPaidOrder(data: any) {
     try {
         const database = await initDB();
-        const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data
+        const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description, isOutFood } = data
         await database.execute(
-            `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description]
+            `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description, is_out_food) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description, isOutFood ? 1 : 0]
         );
         console.log(id, paymentMethod)
         await database.execute(`UPDATE pending_orders SET paid = 1, payment_method = ? WHERE id = ?`, [paymentMethod, id]);
@@ -208,17 +215,6 @@ export async function addPaidOrder(data: any) {
     } catch (error) {
         throw error;
     }
-}
-export async function addPaidOrderFromUnpaid(data: any) {
-    const database = await initDB();
-    const { id, foods, paymentMethod, totalPrice, totalQuantity, date, paidDate, name, phone, address, description } = data;
-    console.log(paymentMethod)
-    await database.execute(
-        `INSERT INTO paid_orders (items, total_price, total_quantity, payment_method, order_time, paid_time, customer_name, customer_phone, customer_address, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        [JSON.stringify(foods), totalPrice, totalQuantity, paymentMethod, date, paidDate, name, phone, address, description]
-    );
-    await database.execute(`DELETE FROM unpaid_orders WHERE id = ?`, [id]);
-
 }
 
 export async function getPaidOrders() {
@@ -235,10 +231,14 @@ export async function getPaidOrders() {
             customer_phone AS phone,
             customer_address AS address,
             description,
+            is_out_food AS isOutFood,
             order_time AS date,
             paid_time AS paidDate FROM paid_orders ORDER By id DESC; `);
     result.map(order => {
         order.foods = JSON.parse(order.foods);
+        order.isOutFood = order.isOutFood == 1 ? true : false;
+        ;
+
     })
     return result;
 }
@@ -281,7 +281,7 @@ export async function getDataFromCurrentMonth() {
     }).format(now);
 
     // Parse the Persian date string (format: YYYY/M/D)
-    const [persianYear, persianMonth] : any = persianDate.split('/').map(Number);
+    const [persianYear, persianMonth]: any = persianDate.split('/').map(Number);
 
     // First day of current Persian month
     const firstDayOfMonth = new Date(
@@ -365,10 +365,10 @@ export const deleteAccount = async (id: number) => {
 export async function addAccountOrder(accountId: number, data: OrderItem) {
     try {
         const database = await initDB();
-        const { id, foods, totalPrice, totalQuantity, date, name, phone, address, description } = data
+        const { id, foods, totalPrice, totalQuantity, date, name, phone, address, description, isOutFood } = data
         await database.execute(
-            `INSERT INTO account_orders (items, total_price, total_quantity, order_time, customer_name, customer_phone, customer_address, description, account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [JSON.stringify(foods), totalPrice, totalQuantity, date, name, phone, address, description, accountId]
+            `INSERT INTO account_orders (items, total_price, total_quantity, order_time, customer_name, customer_phone, customer_address, description, is_out_food, account_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+            [JSON.stringify(foods), totalPrice, totalQuantity, date, name, phone, address, description, isOutFood ? 1 : 0, accountId]
         );
         await database.execute(`DELETE FROM pending_orders WHERE id = ?`, [id]);
         await database.execute('UPDATE accounts SET total_debt = total_debt + ? WHERE id = ?', [totalPrice, accountId])
@@ -390,6 +390,7 @@ export async function getAccountOrders(accountId: number) {
                 customer_phone AS phone,
                 customer_address AS address,
                 description,
+                is_out_food AS isOutFood,
                 order_time AS date
                 FROM account_orders
                 WHERE account_id = ?
@@ -399,6 +400,7 @@ export async function getAccountOrders(accountId: number) {
 
         result.forEach((order) => {
             order.foods = JSON.parse(order.foods);
+            order.isOutFood = order.isOutFood == 1 ? true : false;
         });
         return result;
 

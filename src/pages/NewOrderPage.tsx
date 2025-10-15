@@ -8,14 +8,16 @@ import { motion } from "framer-motion";
 
 export const NewOrderPage = () => {
     const [menuFoods, setMenuFoods] = useState<MenuFood[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
     const [totalPrice, setTotalPrice] = useState<number>(0);
     const [totalQuantity, setTotalQuantity] = useState<number>(0);
-    const [customerData, setCustomerData] = useState<{ name: string, phone: string, address: string, description: string }>({
+    const [customerData, setCustomerData] = useState<{ name: string, phone: string, address: string, description: string, isOutFood: boolean }>({
         name: "",
         phone: "",
         address: "",
-        description: ""
+        description: "",
+        isOutFood: false
     })
     const navigate = useNavigate();
     const location = useLocation();
@@ -56,7 +58,8 @@ export const NewOrderPage = () => {
                     name: order.name,
                     phone: order.phone,
                     address: order.address,
-                    description: order.description
+                    description: order.description,
+                    isOutFood: order.isOutFood
                 });
 
                 const processedItems = items.map((item) => {
@@ -128,6 +131,9 @@ export const NewOrderPage = () => {
         const inputValue = e.target.value;
         if (inputName == 'phone' && isNaN(Number(inputValue))) {
             e.preventDefault();
+        } else if (inputName == 'isOutFood') {
+            setCustomerData({ ...customerData, isOutFood: !customerData.isOutFood });
+            console.log(customerData.isOutFood)
         }
         else {
             setCustomerData({
@@ -142,14 +148,14 @@ export const NewOrderPage = () => {
             if (selectedFoods.length === 0 || totalPrice === 0 || totalQuantity === 0) {
                 return alert('هیچ غذایی انتخاب نشده!');
             }
-            const { name, phone, address, description } = customerData;
+            const { name, phone, address, description, isOutFood } = customerData;
             const date = new Date();
             const time = date.getTime();
             if (location.state) {
-                await updatePendingOrder(location.state.id, selectedFoods, totalPrice, totalQuantity, name, phone, address, description);
+                await updatePendingOrder(location.state.id, selectedFoods, totalPrice, totalQuantity, name, phone, address, description, isOutFood);
                 return navigate('/orders');
             }
-            await addPendingOrder(selectedFoods, totalPrice, totalQuantity, time, name, phone, address, description);
+            await addPendingOrder(selectedFoods, totalPrice, totalQuantity, time, name, phone, address, description, isOutFood);
             return navigate('/orders');
         } catch (error) {
             throw error;
@@ -214,6 +220,20 @@ export const NewOrderPage = () => {
                         className="border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none rounded-lg px-4 py-2 text-gray-700 placeholder-gray-400 transition-all"
                     />
                 </div>
+                <div className="flex flex-1 items-center gap-1 min-w-[500px]">
+                    <input
+                        type="checkbox"
+                        id="isOutFood"
+                        onChange={handleCustomerData}
+                        name="isOutFood"
+                        checked={customerData.isOutFood}
+                        className="border outline-none transition-all"
+                    />
+                    <label htmlFor="isOutFood" className="font-semibold text-gray-700">
+                        بیرون بر
+                    </label>
+
+                </div>
 
             </div>
 
@@ -224,6 +244,15 @@ export const NewOrderPage = () => {
                 </div>
             ) : (
                 <div className="w-full max-w-6xl flex flex-col gap-14">
+                    <div className="w-full max-w-3xl mx-auto mb-6">
+                        <input
+                            type="text"
+                            placeholder="جستجو در منو..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none rounded-xl px-4 py-2 text-gray-700 placeholder-gray-400 transition-all shadow-sm"
+                        />
+                    </div>
                     {/* 🍽️ غذاها */}
                     <div>
                         <div className="flex items-center gap-2 mb-4">
@@ -240,7 +269,7 @@ export const NewOrderPage = () => {
                         ) : (
                             <div className="flex flex-wrap gap-6 justify-center">
                                 {menuFoods
-                                    .filter(i => i.type === 'food')
+                                    .filter(i => i.type === 'food' && i.title.toLowerCase().includes(searchTerm.toLowerCase()))
                                     .map((item, idx) => (
                                         <div
                                             key={idx}
@@ -313,7 +342,7 @@ export const NewOrderPage = () => {
                         ) : (
                             <div className="flex flex-wrap gap-6 justify-center">
                                 {menuFoods
-                                    .filter(i => i.type === 'drink')
+                                    .filter(i => i.type === 'drink' && i.title.toLowerCase().includes(searchTerm.toLowerCase()))
                                     .map((item, idx) => (
                                         <div
                                             key={idx}

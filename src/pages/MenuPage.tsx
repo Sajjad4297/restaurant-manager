@@ -8,6 +8,7 @@ import { ConfirmModal } from "../components/ConfirmModal";
 
 export const MenuPage = () => {
     const [menu, setMenu] = useState<MenuItem[]>([]);
+    const [searchTerm, setSearchTerm] = useState("");
     const [editingItem, setEditingItem] = useState<MenuItem | null>(null);
     const [formData, setFormData] = useState<{ title: string; price: number; imageFile: File | null; type: 'food' | 'drink' }>({
         title: "",
@@ -180,6 +181,16 @@ export const MenuPage = () => {
             </div>
             {/* Foods Section */}
             <div className="mb-10">
+                <div className="w-full max-w-3xl mx-auto mb-6">
+                    <input
+                        type="text"
+                        placeholder="جستجو در منو..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="w-full border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none rounded-xl px-4 py-2 text-gray-700 placeholder-gray-400 transition-all shadow-sm"
+                    />
+                </div>
+
                 <div className="flex items-center gap-2 mb-4">
                     <span className="inline-block w-1.5 h-6 bg-orange-500 rounded"></span>
                     <h3 className="text-xl font-bold text-gray-800">🍽️ غذاها</h3>
@@ -193,7 +204,7 @@ export const MenuPage = () => {
                 ) : (
                     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
                         {menu
-                            .filter(i => i.type === 'food')
+                            .filter(i => i.type === 'food' && i.title.toLowerCase().includes(searchTerm.toLowerCase()))
                             .map((item) => (
                                 <div
                                     key={item.id}
@@ -241,7 +252,7 @@ export const MenuPage = () => {
                     <span className="text-sm text-gray-500">({menu.filter(i => i.type === 'drink').length})</span>
                 </div>
 
-                {menu.filter(i => i.type === 'drink').length === 0 ? (
+                {menu.filter(i => i.type === 'drink' && i.title.toLowerCase().includes(searchTerm.toLowerCase())).length === 0 ? (
                     <p className="text-gray-400 text-center py-10 border rounded-lg bg-gray-50">
                         هیچ نوشیدنی‌ای ثبت نشده است
                     </p>

@@ -1,7 +1,7 @@
 // src/pages/AccountHistoryPage.tsx
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { ArrowLeftIcon, XIcon } from "lucide-react";
+import { ArrowLeftIcon, ShoppingBag, XIcon } from "lucide-react";
 import {
     getAccountOrders,
     getAccountTransactions,
@@ -334,39 +334,91 @@ export const AccountHistoryPage = () => {
                 </div>
             )}
 
-            {/* Details Modal */}
             {selectedOrder && (
-                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 max-w-xl w-full relative shadow-lg">
+                <div className="fixed inset-0 z-50 flex items-center animate-fadeIn justify-center bg-black/50 backdrop-blur-sm animate-fadeIn">
+                    <div className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-8 relative">
                         <button
                             onClick={() => setSelectedOrder(null)}
-                            className="absolute top-4 left-4 text-gray-500 hover:text-red-600"
+                            className="absolute cursor-pointer top-4 left-4 text-gray-600 hover:text-red-500 transition-all"
                         >
                             <XIcon size={28} />
                         </button>
-                        <h2 className="text-xl font-bold mb-4">
-                            سفارش #{selectedOrder.id}
+
+                        <h2 className="text-2xl font-bold mb-6 border-b pb-4 text-gray-800">
+                            جزئیات سفارش #{selectedOrder.id}
                         </h2>
 
-                        <div className="space-y-2">
-                            <p>نام: {selectedOrder.name || "—"}</p>
-                            <p>توضیحات: {selectedOrder.description || "—"}</p>
-                            <p>مبلغ کل: {selectedOrder.totalPrice.toLocaleString()} تومان</p>
+                        <div className="space-y-3 text-gray-700 leading-relaxed">
+                            <p>
+                                <span className="font-semibold text-indigo-600">نام:</span>{" "}
+                                {selectedOrder.name || "—"}
+                            </p>
+                            <p>
+                                <span className="font-semibold text-indigo-600">شماره تماس:</span>{" "}
+                                {selectedOrder.phone || "—"}
+                            </p>
+                            <p>
+                                <span className="font-semibold text-indigo-600">آدرس:</span>{" "}
+                                {selectedOrder.address || "—"}
+                            </p>
+                            <p>
+                                <span className="font-semibold text-indigo-600">توضیحات:</span>{" "}
+                                {selectedOrder.description || "—"}
+                            </p>
+                            {selectedOrder.isOutFood &&
+                                <div className="bg-blue-500 text-white flex max-w-fit items-center gap-1 px-2 py-1 rounded-full text-sm shadow-sm">
+                                    <ShoppingBag size={16} />
+                                    <span>بیرون‌بر</span>
+                                </div>
+                            }
                         </div>
 
-                        <ul className="divide-y mt-4 border-t pt-2">
-                            {selectedOrder.foods.map((f) => (
-                                <li key={f.id} className="py-1 flex justify-between">
-                                    <span>
-                                        {f.quantity} × {f.title}
-                                    </span>
-                                    <span>{f.totalPrice.toLocaleString()} تومان</span>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="mt-6 border-t pt-4">
+                            <h3 className="font-bold text-lg text-gray-800 mb-3">
+                                اقلام سفارش:
+                            </h3>
+                            <ul className="divide-y divide-gray-200">
+                                {selectedOrder.foods.map((food) => (
+                                    <li
+                                        key={food.id}
+                                        className="flex justify-between py-2 text-gray-700"
+                                    >
+                                        <span>
+                                            {food.quantity} × {food.title}
+                                        </span>
+                                        <span>{food.totalPrice.toLocaleString()} تومان</span>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        <div className="mt-6 border-t pt-4 flex justify-between text-lg font-semibold text-gray-900">
+                            <span>تعداد کل اقلام:</span>
+                            <span>{selectedOrder.totalQuantity}</span>
+                        </div>
+
+                        <div className="mt-2 flex justify-between text-lg font-bold text-green-600">
+                            <span>مبلغ نهایی:</span>
+                            <span>{selectedOrder.totalPrice.toLocaleString()} تومان</span>
+                        </div>
+                        <div className="flex justify-between">
+                            <p className="mt-4 text-gray-500 text-sm text-left">
+                                زمان سفارش: {selectedOrder.time}
+                            </p>
+
+                            {selectedOrder.paidTime && (
+
+                                <p className="mt-4 text-gray-500 text-sm text-left">
+                                    زمان پرداخت: {selectedOrder.paidTime}
+                                </p>
+                            )}
+                        </div>
+
                     </div>
                 </div>
             )}
+
+
             <ConfirmModal
                 show={modal.show}
                 title={modal.title}
