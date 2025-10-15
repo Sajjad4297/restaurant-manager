@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { MenuItem, Account, Transaction, OrderItem } from '../types'
+import type { MenuItem, Account, Transaction, OrderItem, Buy, Product } from '../types'
 // Hold one instance for reuse
 let db: Database | null = null;
 
@@ -81,7 +81,7 @@ export async function initDB() {
             )
         `);
         await db.execute(`
-            CREATE TABLE IF NOT EXISTS transactions (
+            CREATE TABLE IF NOT EXISTS customer_transactions (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 account_id INTEGER NOT NULL,
                 amount INTEGER NOT NULL,
@@ -91,6 +91,41 @@ export async function initDB() {
             );
 
                 `)
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS suppliers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier TEXT NOT NULL,
+                total_cost REAL NOT NULL DEFAULT 0,
+                unpaid_quantity INTEGER NOT NULL DEFAULT 0,
+                description TEXT
+            )
+        `);
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS buys (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                supplier_id INTEGER NOT NULL,
+                product TEXT NOT NULL,
+                total_price REAL NOT NULL DEFAULT 0,
+                description TEXT,
+                is_paid INTEGER NOT NULL DEFAULT 1,
+                date REAL NOT Null,
+                FOREIGN KEY (supplier_id) REFERENCES suppliers(id) ON DELETE CASCADE
+
+            )
+        `);
+        await db.execute(`
+            CREATE TABLE IF NOT EXISTS buy_transactions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                account_id INTEGER NOT NULL,
+                amount INTEGER NOT NULL,
+                date TEXT NOT NULL DEFAULT (datetime('now')),
+                note TEXT,
+                FOREIGN KEY (account_id) REFERENCES accounts(id) ON DELETE CASCADE
+            );
+
+                `)
+
+
     }
     return db;
 }
@@ -411,7 +446,7 @@ export async function getAccountOrders(accountId: number) {
 export async function getAccountTransactions(accountId: number) {
     try {
         const database = await initDB();
-        const rows: Transaction[] = await database.select("SELECT * FROM transactions WHERE account_id = ? ORDER BY id DESC", [accountId]);
+        const rows: Transaction[] = await database.select("SELECT * FROM customer_transactions WHERE account_id = ? ORDER BY id DESC", [accountId]);
         return rows;
     } catch (error) {
         throw error;
@@ -421,7 +456,7 @@ export async function getAccountTransactions(accountId: number) {
 export async function addTransaction(accountId: number, amount: number) {
     try {
         const database = await initDB();
-        await database.execute("INSERT INTO transactions (account_id, amount) VALUES (?, ?)", [accountId, amount]);
+        await database.execute("INSERT INTO customer_transactions (account_id, amount) VALUES (?, ?)", [accountId, amount]);
     } catch (error) {
         throw error;
     }
@@ -429,7 +464,7 @@ export async function addTransaction(accountId: number, amount: number) {
 export async function updateTransactionNote(id: number, note: string) {
     try {
         const database = await initDB();
-        await database.execute("UPDATE transactions SET note = ? WHERE id = ?", [note, id]);
+        await database.execute("UPDATE customer_transactions SET note = ? WHERE id = ?", [note, id]);
     } catch (error) {
         throw error;
     }
@@ -439,6 +474,128 @@ export async function updateAccountDebt(accountId: number, paidDebt: number) {
     try {
         const database = await initDB();
         await database.execute("UPDATE accounts SET total_debt = total_debt - ? WHERE id = ?", [paidDebt, accountId]);
+    } catch (error) {
+        throw error;
+    }
+}
+// BUYS FUNCTIONS
+
+export async function addSupplier(data: Partial<Buy>) {
+    const database = await initDB();
+    const { supplier, totalCost, description, } = data;
+    await database.execute(
+        `INSERT INTO suppliers (supplier, total_cost, description) VALUES (?, ?, ?)`,
+        [supplier, totalCost, description]
+    );
+}
+
+export async function getSuppliers(): Promise<Buy[]> {
+    const database = await initDB();
+
+    const rows: any[] = await database.select(`
+        SELECT
+            id,
+            supplier,
+            total_cost AS totalCost,
+            description,
+            unpaid_quantity AS unpaidQuantity
+        FROM suppliers
+    `);
+    return rows;
+}
+export async function updateSupplier(id: number, data: Partial<Buy>) {
+    const database = await initDB();
+    const { supplier, totalCost, description } = data;
+    await database.execute(
+        `UPDATE suppliers SET supplier=?, total_cost=?, description=? WHERE id=?`,
+        [supplier, totalCost, description, id]
+    );
+}
+
+export async function deleteSupplier(id: number) {
+    const database = await initDB();
+    await database.execute(`DELETE FROM suppliers WHERE id = ?`, [id]);
+}
+export const addProductToBuy = async (buyId: number, product: Product) => {
+    try {
+        const database = await initDB();
+        const { name, price, isPaid, description, date } = product;
+        await database.execute(
+            `INSERT INTO buys (product, total_price, description, is_paid,date, supplier_id) VALUES (?, ?, ?, ?, ?, ?)`,
+            [name, price, description, isPaid ? 1 : 0, date, buyId]
+        );
+        if (!isPaid)
+            await database.execute(
+                `UPDATE suppliers SET total_cost=total_cost + ?, unpaid_quantity = unpaid_quantity + 1  WHERE id=?`,
+                [price, buyId]
+            );
+
+    } catch (error) {
+        console.error(error)
+    }
+
+
+};
+// Get products for a specific buy/supplier
+export const getBuyProducts = async (buyId: number): Promise<Product[]> => {
+    const database = await initDB();
+
+    const rows: any[] = await database.select(`
+        SELECT
+            id,
+            product AS name,
+            total_price AS price,
+            description,
+            is_paid AS isPaid,
+            date
+        FROM buys WHERE supplier_id = ? ORDER BY id DESC
+    `, [buyId]);
+    rows.map((product) => {
+        product.isPaid = product.isPaid == 1 ? true : 0
+    });
+
+    return rows;
+
+};
+
+export const updateProduct = async (productId: number, productData: Partial<Product>): Promise<void> => {
+    const database = await initDB();
+    const { description, name, price } = productData;
+    await database.execute(
+        `UPDATE buys SET product=?, description=?, total_price=? WHERE id=?`,
+        [name, description, price, productId]
+    );
+};
+export async function getBuyTransactions(accountId: number) {
+    try {
+        const database = await initDB();
+        const rows: Transaction[] = await database.select("SELECT * FROM buy_transactions WHERE account_id = ? ORDER BY id DESC", [accountId]);
+        return rows;
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function addBuyTransaction(accountId: number, amount: number, note: string) {
+    try {
+        const database = await initDB();
+        await database.execute("INSERT INTO buy_transactions (account_id, amount, note) VALUES (?, ?, ?)", [accountId, amount, note]);
+    } catch (error) {
+        throw error;
+    }
+}
+export async function updateBuyTransactionNote(id: number, note: string) {
+    try {
+        const database = await initDB();
+        await database.execute("UPDATE buy_transactions SET note = ? WHERE id = ?", [note, id]);
+    } catch (error) {
+        throw error;
+    }
+}
+export async function updateBuyDebt(accountId: number, paidDebt: number) {
+    try {
+        const database = await initDB();
+        await database.execute("UPDATE suppliers SET total_cost = total_cost - ? WHERE id = ?", [paidDebt, accountId]);
     } catch (error) {
         throw error;
     }

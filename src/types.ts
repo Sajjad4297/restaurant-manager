@@ -49,14 +49,32 @@ export type Stats = {
     foods: FoodItem[];
 }
 export type Account = {
-  id?: number;
-  accountName: string;
-  description?: string;
-  totalDebt: number;
-}
-export type Transaction ={
     id?: number;
-    amount:number;
-    time:string;
+    accountName: string;
+    description?: string;
+    totalDebt: number;
+}
+export type Transaction = {
+    id?: number;
+    amount: number;
+    time: string;
     note?: string;
+}
+export interface Buy {
+    id?: number;
+    supplier: string;
+    totalCost: number;
+    unpaidQuantity:number;
+    description?: string;
+    products?: Product[];
+
+}
+export interface Product {
+    id?: number;
+    name: string;
+    price: number;
+    isPaid: boolean;
+    description: string;
+    date:number;
+    time:string;
 }

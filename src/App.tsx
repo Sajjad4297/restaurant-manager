@@ -7,6 +7,8 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { NewOrderPage } from "./pages/NewOrderPage";
 import { AccountsPage } from "./pages/AccountsPage";
 import { AccountHistoryPage } from "./pages/AccountHistoryPage";
+import { BuysPage } from "./pages/BuysPage";
+import { BuyHistoryPage } from "./pages/BuysHistory";
 
 const Layout = () => {
 
@@ -60,6 +62,14 @@ const Layout = () => {
                     >
                         حساب ها
                     </NavLink>
+                    <NavLink
+                        to="/buys"
+                        className={({ isActive }) =>
+                            `hover:underline ${isActive ? "font-bold text-yellow-400" : ""}`
+                        }
+                    >
+                        خرید ها
+                    </NavLink>
 
                 </nav>
             </header>
@@ -75,6 +85,9 @@ const Layout = () => {
                     <Route path="/dashboard" element={<DashboardPage />} />
                     <Route path="/accounts" element={<AccountsPage />} />
                     <Route path="/accounts/:id/history" element={<AccountHistoryPage />} />
+                    <Route path="/buys" element={<BuysPage />} />
+                    <Route path="/buys/:id/history" element={<BuyHistoryPage />} />
+
                     <Route path="*" element={<h2 className="text-red-600">صفحه پیدا نشد (۴۰۴)</h2>} />
                 </Routes>
             </main>
