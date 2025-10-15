@@ -9,6 +9,7 @@ import { AccountsPage } from "./pages/AccountsPage";
 import { AccountHistoryPage } from "./pages/AccountHistoryPage";
 import { BuysPage } from "./pages/BuysPage";
 import { BuyHistoryPage } from "./pages/BuysHistory";
+import { RawMaterialsPage } from "./pages/RawMaterialsPage";
 
 const Layout = () => {
 
@@ -70,6 +71,14 @@ const Layout = () => {
                     >
                         خرید ها
                     </NavLink>
+                    <NavLink
+                        to="/raw-materials"
+                        className={({ isActive }) =>
+                            `hover:underline ${isActive ? "font-bold text-yellow-400" : ""}`
+                        }
+                    >
+                        مواد اولیه
+                    </NavLink>
 
                 </nav>
             </header>
@@ -87,6 +96,7 @@ const Layout = () => {
                     <Route path="/accounts/:id/history" element={<AccountHistoryPage />} />
                     <Route path="/buys" element={<BuysPage />} />
                     <Route path="/buys/:id/history" element={<BuyHistoryPage />} />
+                    <Route path="/raw-materials" element={<RawMaterialsPage />} />
 
                     <Route path="*" element={<h2 className="text-red-600">صفحه پیدا نشد (۴۰۴)</h2>} />
                 </Routes>

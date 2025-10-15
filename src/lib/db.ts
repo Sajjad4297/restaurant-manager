@@ -1,5 +1,5 @@
 import Database from "@tauri-apps/plugin-sql";
-import type { MenuItem, Account, Transaction, OrderItem, Buy, Product } from '../types'
+import type { MenuItem, Account, Transaction, OrderItem, Buy, Product, RawMaterial } from '../types'
 // Hold one instance for reuse
 let db: Database | null = null;
 
@@ -124,6 +124,14 @@ export async function initDB() {
             );
 
                 `)
+            await db.execute(`
+                CREATE TABLE IF NOT EXISTS raw_materials (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                quantity REAL NOT NULL DEFAULT 0,
+                unit TEXT DEFAULT 'عدد'
+                )
+                `);
 
 
     }
@@ -599,4 +607,63 @@ export async function updateBuyDebt(accountId: number, paidDebt: number) {
     } catch (error) {
         throw error;
     }
+}
+// RAW MATERIALS FUNCTIONS
+export async function addRawMaterial(name: string, quantity: number, unit: string) {
+    const database = await initDB();
+    await database.execute("INSERT INTO raw_materials (name, quantity, unit) VALUES (?, ?, ?)", [name, quantity, unit]);
+}
+
+export async function getRawMaterials() : Promise<RawMaterial[]> {
+    const database = await initDB();
+    return await database.select("SELECT * FROM raw_materials");
+}
+
+export async function updateRawMaterial(id: number, name: string, quantity: number, unit: string) {
+    const database = await initDB();
+    await database.execute("UPDATE raw_materials SET name=?, quantity=?, unit=? WHERE id = ?", [name, quantity, unit, id]);
+}
+
+export async function deductRawMaterialsForOrder(
+  order: OrderItem,
+  usageOverrides?: Record<string, number>
+) {
+  // load raw materials once
+  const rawMaterials = await getRawMaterials(); // [{ id, name, quantity, unit }, ...]
+
+  // normalize helper
+  const normalize = (s: string) => (s || "").toString().trim().toLowerCase();
+
+  // برای هر غذا در سفارش
+  for (const food of order.foods) {
+    const foodTitleNorm = normalize(food.title);
+
+    // اگر quantity صفر یا منفی باشه نادیده میگیریم
+    const qty = Number(food.quantity) || 0;
+    if (qty <= 0) continue;
+
+    // برای هر ماده اولیه بررسی می‌کنیم آیا نام ماده در عنوان غذا هست یا خیر
+    for (const mat of rawMaterials) {
+      const matNameNorm = normalize(mat.name);
+
+      if (!matNameNorm) continue;
+
+      // ساده‌ترین روش: includes (می‌تونی قوانین دقیق‌تری بذاری)
+      if (foodTitleNorm.includes(matNameNorm)) {
+        // مقدار مصرف پیش‌فرض برای یک پرس (می‌تونی override بدی)
+        const perUnit = usageOverrides && usageOverrides[mat.name] ? usageOverrides[mat.name] : 1;
+
+        // مقدار کل مصرف = perUnit * qty
+        const usedAmount = perUnit * qty;
+
+        // فراخوانی تابعی که موجودی رو آپدیت می‌کنه
+        try {
+          await updateRawMaterial( mat.id!, mat.name, mat.quantity - usedAmount , mat.unit );
+          console.log(`Consumed ${usedAmount} ${mat.unit} of ${mat.name} for ${food.title} (qty ${qty})`);
+        } catch (err) {
+          console.error(`Failed to update raw material ${mat.name}:`, err);
+        }
+      }
+    }
+  }
 }

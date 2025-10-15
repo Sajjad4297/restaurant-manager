@@ -78,3 +78,9 @@ export interface Product {
     date:number;
     time:string;
 }
+export interface RawMaterial {
+    id?: number;
+    name: string;
+    quantity: number;
+    unit: string;
+}

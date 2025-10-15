@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import type { OrderItem, FoodItem, Account } from "../types";
-import { getPendingOrders, addPaidOrder, deletePendingOrder, addAccountOrder, getAccounts } from "../lib/db";
+import { getPendingOrders, addPaidOrder, deletePendingOrder, addAccountOrder, getAccounts, deductRawMaterialsForOrder } from "../lib/db";
 import { Trash2, Check, ShoppingBag } from "lucide-react";
 import { ConfirmModal } from "../components/ConfirmModal";
 
@@ -43,6 +43,8 @@ export const OrdersPage = () => {
             confirmColor: "green",
             action: async (_?: Account | null, selectedPaymentMethod?: string) => {
                 try {
+                    await deductRawMaterialsForOrder(item);
+
                     const date = new Date();
                     const paidDate = date.getTime();
                     item.paidDate = paidDate;
@@ -89,6 +91,7 @@ export const OrdersPage = () => {
                     return;
                 }
                 try {
+                    await deductRawMaterialsForOrder(item);
                     await addAccountOrder(account.id, item);
                     await loadPendingOrders();
                 } catch (error) {
