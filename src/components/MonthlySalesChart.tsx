@@ -9,7 +9,9 @@ import {
     ResponsiveContainer,
 } from "recharts";
 import moment from "moment-jalaali";
+import { ChevronRight, ChevronLeft } from "lucide-react";
 import type { OrderItem, FoodItem } from "../types";
+moment.loadPersian({ dialect: "persian-modern", usePersianDigits: true });
 
 type ChartData = {
     name: string;
@@ -22,13 +24,14 @@ type ChartData = {
 
 export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
     const [chartData, setChartData] = useState<ChartData[]>([]);
+    const [month, setMonth] = useState(moment()); // current shown month
 
+    // 🔹 Update chart when month or sales change
     useEffect(() => {
         if (!sales || sales.length === 0) return;
 
-        const now = moment();
-        const currentYear = now.jYear();
-        const currentMonth = now.jMonth();
+        const currentYear = month.jYear();
+        const currentMonth = month.jMonth();
         const daysInMonth = moment.jDaysInMonth(currentYear, currentMonth);
 
         const dailySummary: Record<number, ChartData> = {};
@@ -43,12 +46,13 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
 
         for (const order of sales) {
             const m = moment(order.date);
+            if (m.jYear() !== currentYear || m.jMonth() !== currentMonth) continue; // only same month
+
             const orderDay = m.jDate();
             const summary = dailySummary[orderDay];
             if (!summary) continue;
 
             for (const item of order.foods as FoodItem[]) {
-                // Fix missing type
                 const itemType: "food" | "drink" =
                     item.type || (item.title?.includes("چلو") ? "food" : "drink");
 
@@ -69,7 +73,11 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
         }
 
         setChartData(Object.values(dailySummary));
-    }, [sales]);
+    }, [sales, month]);
+
+    // 🔹 Move between months
+    const goPrevMonth = () => setMonth((prev) => prev.clone().subtract(1, "jMonth"));
+    const goNextMonth = () => setMonth((prev) => prev.clone().add(1, "jMonth"));
 
     const CustomTooltip = ({ active, payload, label }: any) => {
         if (!active || !payload || payload.length === 0) return null;
@@ -80,7 +88,7 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
         const items = Object.entries(data.breakdown);
         const foodItems = items
             .filter(([, d]) => d.type === "food")
-            .sort((a, b) => b[1].quantity - a[1].quantity); // sort by quantity descending
+            .sort((a, b) => b[1].quantity - a[1].quantity);
         const drinkItems = items
             .filter(([, d]) => d.type === "drink")
             .sort((a, b) => b[1].quantity - a[1].quantity);
@@ -92,7 +100,6 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
                 <p className="text-green-600 mb-1">غذا: {data.foodSales.toLocaleString()} تومان</p>
                 <p className="text-blue-600 mb-2">نوشیدنی: {data.drinkSales.toLocaleString()} تومان</p>
                 <hr className="my-2" />
-
                 {foodItems.length > 0 && (
                     <div className="mb-2">
                         <div className="flex items-center gap-2 mb-1">
@@ -111,7 +118,6 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
                         </ul>
                     </div>
                 )}
-
                 {drinkItems.length > 0 && (
                     <div>
                         <div className="flex items-center gap-2 mb-1">
@@ -136,9 +142,32 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
 
     return (
         <div className="w-full p-4 bg-white rounded-2xl shadow">
-            <h2 className="text-xl font-semibold mb-3 text-center">
-                فروش روزانه ماه جاری
-            </h2>
+            <div className="flex justify-between items-center mb-3">
+                {/* 🔹 Left side (previous month) */}
+                <div className="flex items-center gap-1">
+                    <button onClick={goNextMonth} className="p-2 hover:bg-gray-100 rounded-full">
+                        <ChevronRight className="w-5 h-5 text-gray-600" />
+                    </button>
+                    <span className="text-gray-500 text-sm">
+                        {month.clone().add(1, "jMonth").format("jMMMM")}
+                    </span>
+                </div>
+
+                {/* 🔹 Center (current month) */}
+                <h2 className="text-xl font-semibold text-center">
+                    فروش روزانه {month.format("jMMMM jYYYY")}
+                </h2>
+
+                {/* 🔹 Right side (next month) */}
+                <div className="flex items-center gap-1">
+                    <span className="text-gray-500 text-sm">
+                        {month.clone().subtract(1, "jMonth").format("jMMMM")}
+                    </span>
+                    <button onClick={goPrevMonth} className="p-2 hover:bg-gray-100 rounded-full">
+                        <ChevronLeft className="w-5 h-5 text-gray-600" />
+                    </button>
+                </div>
+            </div>
 
             {chartData.length === 0 ? (
                 <p className="text-center text-gray-500">داده‌ای برای نمایش وجود ندارد</p>
@@ -148,16 +177,13 @@ export const MonthlySalesChart = ({ sales }: { sales: OrderItem[] }) => {
                     <ResponsiveContainer width="100%" height={400}>
                         <BarChart
                             data={chartData}
-                            margin={{ top: 20, right: 20, left: 60, bottom: 20 }} // <-- left margin added
+                            margin={{ top: 20, right: 20, left: 60, bottom: 20 }}
                         >
                             <CartesianGrid strokeDasharray="3 3" vertical={false} />
                             <XAxis dataKey="name" />
                             <YAxis
-                                tick={{ fill: "#6B7280", textAnchor: "start" }} // <-- right-align
-
+                                tick={{ fill: "#6B7280", textAnchor: "start" }}
                                 tickFormatter={(v) => (v / 1_000_000).toLocaleString("fa-IR")}
-
-
                             />
                             <Tooltip content={<CustomTooltip />} />
                             <Bar dataKey="foodSales" stackId="a" fill="#22c55e" name="غذا" />
