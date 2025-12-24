@@ -167,7 +167,7 @@ export const NewOrderPage = () => {
 
             {/* Customer Info Form */}
             <div className="w-full max-w-5xl bg-white shadow-md rounded-2xl p-6 flex flex-wrap justify-between gap-6">
-                <div className="flex flex-col flex-1 min-w-[250px]">
+                <div className="flex flex-col flex-1 min-w-62.5">
                     <label htmlFor="name" className="font-semibold text-gray-700 mb-2">
                         نام مشتری:
                     </label>
@@ -181,7 +181,7 @@ export const NewOrderPage = () => {
                     />
                 </div>
 
-                <div className="flex flex-col flex-1 min-w-[250px]">
+                <div className="flex flex-col flex-1 min-w-62.5">
                     <label htmlFor="phone" className="font-semibold text-gray-700 mb-2">
                         شماره مشتری:
                     </label>
@@ -195,7 +195,7 @@ export const NewOrderPage = () => {
                     />
                 </div>
 
-                <div className="flex flex-col flex-1 min-w-[500px]">
+                <div className="flex flex-col flex-1 min-w-125">
                     <label htmlFor="address" className="font-semibold text-gray-700 mb-2">
                         آدرس مشتری:
                     </label>
@@ -208,7 +208,7 @@ export const NewOrderPage = () => {
                         className="border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none rounded-lg px-4 py-2 text-gray-700 placeholder-gray-400 transition-all"
                     />
                 </div>
-                <div className="flex flex-col flex-1 min-w-[500px]">
+                <div className="flex flex-col flex-1 min-w-125">
                     <label htmlFor="address" className="font-semibold text-gray-700 mb-2">
                         توضیحات:
                     </label>
@@ -220,7 +220,7 @@ export const NewOrderPage = () => {
                         className="border border-gray-300 focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 outline-none rounded-lg px-4 py-2 text-gray-700 placeholder-gray-400 transition-all"
                     />
                 </div>
-                <div className="flex flex-1 items-center gap-1 min-w-[500px]">
+                <div className="flex flex-1 items-center gap-1 min-w-125">
                     <input
                         type="checkbox"
                         id="isOutFood"

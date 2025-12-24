@@ -15,3 +15,31 @@
 .animate-fadeIn {
     animation: fadeIn 0.25s ease-out;
 }
+/* Add this to your global CSS file */
+/* At the top of your global index.css */
+@import "react-multi-date-picker/styles/layouts/prime.css";/* Or use the default theme */
+@import "react-multi-date-picker/styles/colors/purple.css";
+/* Or add these specific styles */
+.rmdp-container {
+  position: relative;
+  display: inline-block;
+}
+
+.rmdp-calendar {
+  direction: rtl !important;
+  font-family: Tahoma, Arial, sans-serif !important;
+}
+
+.rmdp-day-picker {
+  direction: rtl !important;
+}
+
+.rmdp-header {
+  direction: rtl !important;
+}
+
+/* Fix for RTL in production */
+[dir="rtl"] .rmdp-calendar {
+  right: 0;
+  left: auto !important;
+}

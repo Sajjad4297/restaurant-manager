@@ -143,7 +143,7 @@ export const MenuPage = () => {
                     <div className="flex flex-col gap-3 items-center">
                         <label
                             htmlFor="file"
-                            className="bg-gradient-to-r from-green-500 to-emerald-600 text-white font-medium px-5 py-2 rounded-lg shadow hover:opacity-90 cursor-pointer transition-all"
+                            className="bg-linear-to-r from-green-500 to-emerald-600 text-white font-medium px-5 py-2 rounded-lg shadow hover:opacity-90 cursor-pointer transition-all"
                         >
                             آپلود عکس
                         </label>

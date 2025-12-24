@@ -124,7 +124,7 @@ export async function initDB() {
             );
 
                 `)
-            await db.execute(`
+        await db.execute(`
                 CREATE TABLE IF NOT EXISTS raw_materials (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL,
@@ -614,7 +614,7 @@ export async function addRawMaterial(name: string, quantity: number, unit: strin
     await database.execute("INSERT INTO raw_materials (name, quantity, unit) VALUES (?, ?, ?)", [name, quantity, unit]);
 }
 
-export async function getRawMaterials() : Promise<RawMaterial[]> {
+export async function getRawMaterials(): Promise<RawMaterial[]> {
     const database = await initDB();
     return await database.select("SELECT * FROM raw_materials");
 }
@@ -625,45 +625,70 @@ export async function updateRawMaterial(id: number, name: string, quantity: numb
 }
 
 export async function deductRawMaterialsForOrder(
-  order: OrderItem,
-  usageOverrides?: Record<string, number>
+    order: OrderItem,
+    usageOverrides?: Record<string, number>
 ) {
-  // load raw materials once
-  const rawMaterials = await getRawMaterials(); // [{ id, name, quantity, unit }, ...]
+    // load raw materials once
+    const rawMaterials = await getRawMaterials(); // [{ id, name, quantity, unit }, ...]
 
-  // normalize helper
-  const normalize = (s: string) => (s || "").toString().trim().toLowerCase();
+    // normalize helper
+    const normalize = (s: string) => (s || "").toString().trim().toLowerCase();
 
-  // برای هر غذا در سفارش
-  for (const food of order.foods) {
-    const foodTitleNorm = normalize(food.title);
+    // برای هر غذا در سفارش
+    for (const food of order.foods) {
+        const foodTitleNorm = normalize(food.title);
 
-    // اگر quantity صفر یا منفی باشه نادیده میگیریم
-    const qty = Number(food.quantity) || 0;
-    if (qty <= 0) continue;
+        // اگر quantity صفر یا منفی باشه نادیده میگیریم
+        const qty = Number(food.quantity) || 0;
+        if (qty <= 0) continue;
 
-    // برای هر ماده اولیه بررسی می‌کنیم آیا نام ماده در عنوان غذا هست یا خیر
-    for (const mat of rawMaterials) {
-      const matNameNorm = normalize(mat.name);
+        // برای هر ماده اولیه بررسی می‌کنیم آیا نام ماده در عنوان غذا هست یا خیر
+        for (const mat of rawMaterials) {
+            const matNameNorm = normalize(mat.name);
 
-      if (!matNameNorm) continue;
+            if (!matNameNorm) continue;
 
-      // ساده‌ترین روش: includes (می‌تونی قوانین دقیق‌تری بذاری)
-      if (foodTitleNorm.includes(matNameNorm)) {
-        // مقدار مصرف پیش‌فرض برای یک پرس (می‌تونی override بدی)
-        const perUnit = usageOverrides && usageOverrides[mat.name] ? usageOverrides[mat.name] : 1;
+            // ساده‌ترین روش: includes (می‌تونی قوانین دقیق‌تری بذاری)
+            if (foodTitleNorm.includes(matNameNorm)) {
+                // مقدار مصرف پیش‌فرض برای یک پرس (می‌تونی override بدی)
+                const perUnit = usageOverrides && usageOverrides[mat.name] ? usageOverrides[mat.name] : 1;
 
-        // مقدار کل مصرف = perUnit * qty
-        const usedAmount = perUnit * qty;
+                // مقدار کل مصرف = perUnit * qty
+                const usedAmount = perUnit * qty;
 
-        // فراخوانی تابعی که موجودی رو آپدیت می‌کنه
-        try {
-          await updateRawMaterial( mat.id!, mat.name, mat.quantity - usedAmount , mat.unit );
-          console.log(`Consumed ${usedAmount} ${mat.unit} of ${mat.name} for ${food.title} (qty ${qty})`);
-        } catch (err) {
-          console.error(`Failed to update raw material ${mat.name}:`, err);
+                // فراخوانی تابعی که موجودی رو آپدیت می‌کنه
+                try {
+                    await updateRawMaterial(mat.id!, mat.name, mat.quantity - usedAmount, mat.unit);
+                    console.log(`Consumed ${usedAmount} ${mat.unit} of ${mat.name} for ${food.title} (qty ${qty})`);
+                } catch (err) {
+                    console.error(`Failed to update raw material ${mat.name}:`, err);
+                }
+            }
         }
-      }
     }
-  }
+}
+export async function getAccountOrdersForReceipt(
+    accountId: number,
+    from: number,
+    to: number
+) {
+    const database = await initDB();
+
+    const rows: any[] = await database.select(
+        `
+    SELECT
+      items AS foods,
+      total_price AS totalPrice,
+      total_quantity AS totalQuantity,
+      order_time AS time
+    FROM account_orders
+    WHERE account_id = ?
+      AND order_time BETWEEN ? AND ?
+    ORDER BY order_time ASC
+    `,
+        [accountId, from, to]
+    );
+
+    rows.forEach(r => r.foods = JSON.parse(r.foods));
+    return rows;
 }

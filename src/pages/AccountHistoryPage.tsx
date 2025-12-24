@@ -12,6 +12,7 @@ import {
 } from "../lib/db";
 import type { OrderItem, Account, Transaction } from "../types";
 import { ConfirmModal } from "../components/ConfirmModal";
+import ReceiptModal from "../components/ReceiptModal";
 
 //timer
 const groupOrdersByMonth = (orders: OrderItem[]) => {
@@ -148,6 +149,10 @@ export const AccountHistoryPage = () => {
                         </div>
 
                     )}
+                    <div className="flex flex-col sm:flex-row items-center gap-3 min-w-40 sm:w-auto mt-4">
+                        <ReceiptModal accountName={account?.accountName || ""} accountId={Number(id)} />
+                    </div>
+
                     <div className="flex flex-col sm:flex-row items-center gap-3 min-w-40 sm:w-auto">
                         <div className="flex items-center gap-2 w-full sm:w-auto">
                             <p>پرداخت بدهی :</p>
@@ -163,7 +168,7 @@ export const AccountHistoryPage = () => {
                                         setPayAmount(e.target.value)
                                 }
                                 }
-                                className="border rounded-lg px-3 py-2 text-gray-700 min-w-[300px] sm:w-36 text-center"
+                                className="border rounded-lg px-3 py-2 text-gray-700 min-w-75 sm:w-36 text-center"
                             />
                             <button
                                 onClick={handlePay}
@@ -199,6 +204,7 @@ export const AccountHistoryPage = () => {
                                 )}
                             </div>
                         )}
+
                     </div>
                 </div>
             </div>
@@ -249,7 +255,7 @@ export const AccountHistoryPage = () => {
                                         <React.Fragment key={monthLabel}>
                                             {/* Month Header */}
                                             <tr>
-                                                <td colSpan={7} className="py-3 bg-gradient-to-r from-indigo-100 via-indigo-50 to-indigo-100">
+                                                <td colSpan={7} className="py-3 bg-linear-to-r from-indigo-100 via-indigo-50 to-indigo-100">
                                                     <div className="flex items-center justify-center relative">
                                                         <div className="absolute right-3 z-10 bg-white px-2 py-1 rounded-full shadow-sm border text-gray-700 font-bold ">
                                                             {monthOrders.length}x
