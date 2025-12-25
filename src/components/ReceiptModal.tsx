@@ -125,11 +125,11 @@ export default function ReceiptModal({
                         <table className="w-full border-collapse text-xs mb-1">
                             <thead>
                                 <tr>
+                                    <th className="border px-1 text-center">تاریخ</th>
                                     <th className="border px-1 text-center">نام غذا</th>
                                     <th className="border px-1 text-center">تعداد</th>
                                     <th className="border px-1 text-center">قیمت واحد</th>
                                     <th className="border px-1 text-center">جمع</th>
-                                    <th className="border px-1 text-center">تاریخ</th>
                                     <th className="border px-1 text-center">جمع سفارش</th>
                                 </tr>
                             </thead>
@@ -141,19 +141,20 @@ export default function ReceiptModal({
                                             className={" " + (idx % 2 === 0 ? "bg-gray-200" : "bg-white")}
 
                                         >
+                                            {itemIdx === 0 && (
+                                                <td className="border-thin px-1 text-center" rowSpan={order.foods.length}>
+                                                    {unixToPersianDate(order.time as any)}
+                                                </td>
+                                            )}
+
                                             <td className="border-thin px-1 text-center">{item.title}</td>
                                             <td className="border-thin px-1 text-center">{item.quantity?.toLocaleString('fa-IR')}</td>
                                             <td className="border-thin px-1 text-center">{formatPrice(item.totalPrice / item.quantity)}</td>
                                             <td className="border-thin px-1 text-center">{formatPrice(item.totalPrice)}</td>
                                             {itemIdx === 0 && (
-                                                <>
-                                                    <td className="border-thin px-1 text-center" rowSpan={order.foods.length}>
-                                                        {unixToPersianDate(order.time as any)}
-                                                    </td>
-                                                    <td className="border-thin px-1 text-center font-bold" rowSpan={order.foods.length}>
-                                                        {formatPrice(order.totalPrice)}
-                                                    </td>
-                                                </>
+                                                <td className="border-thin px-1 text-center font-bold" rowSpan={order.foods.length}>
+                                                    {formatPrice(order.totalPrice)}
+                                                </td>
                                             )}
                                         </tr>
                                     ))
